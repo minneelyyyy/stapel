@@ -15,11 +15,9 @@
 
 #include "VulkanRenderer.h"
 
-#include <vulkan/vulkan.h>
+#include <version.h>
 
-#include <vector>
-#include <stdexcept>
-#include <vulkan/vulkan_core.h>
+#include <vulkan/vulkan.h>
 
 #ifdef X11_ENABLED
 #include <X11/Xlib.h>
@@ -30,7 +28,8 @@
 #include <vulkan/vulkan_wayland.h>
 #endif
 
-#include <version.h>
+#include <vector>
+#include <stdexcept>
 
 namespace stapel::backend
 {

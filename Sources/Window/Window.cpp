@@ -14,8 +14,6 @@
  */
 
 #include "Window.h"
-#include <memory>
-#include <stdexcept>
 
 #ifdef TARGET_LINUX
 #   ifdef X11_ENABLED
@@ -27,6 +25,9 @@
 #elif TARGET_WINDOWS
 #   include "Win32/WinWindow.h"
 #endif
+
+#include <memory>
+#include <stdexcept>
 
 namespace stapel
 {

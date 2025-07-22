@@ -16,7 +16,6 @@
 #pragma once
 
 #include <Window/Window.h>
-
 #include <Stapel/Stapel.h>
 
 #include <memory>

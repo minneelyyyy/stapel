@@ -15,13 +15,13 @@
 
 #pragma once
 
-#include <cstdint>
-#include <string>
-#include <memory>
-
 #ifdef VULKAN_ENABLED
 #include <vulkan/vulkan.h>
 #endif
+
+#include <cstdint>
+#include <string>
+#include <memory>
 
 namespace stapel
 {

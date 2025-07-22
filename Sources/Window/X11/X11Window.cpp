@@ -13,13 +13,11 @@
  * limitations under the License.
  */
 
-#include <X11/X.h>
-#include <X11/Xlib.h>
-
 #include "X11Window.h"
 
-#include <stdexcept>
 #include <vulkan/vulkan_xlib.h>
+
+#include <stdexcept>
 
 namespace stapel::backend
 {
@@ -45,6 +43,11 @@ namespace stapel::backend
         XMapWindow(display_, window_);
     }
 
+    X11Window::~X11Window()
+    {
+        XCloseDisplay(display_);
+    }
+
 #ifdef VULKAN_ENABLED
     VkSurfaceKHR X11Window::GetVulkanSurface(VkInstance instance)
     {
@@ -60,9 +63,4 @@ namespace stapel::backend
         return surface;
     }
 #endif
-
-    X11Window::~X11Window()
-    {
-        XCloseDisplay(display_);
-    }
 }
