@@ -76,5 +76,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         return r;
     }
 
+    FreeLibrary(mod);
 	return 0;
 }
