@@ -49,9 +49,16 @@ namespace stapel
     };
 }
 
+#ifdef _WIN32
+#   define EXPORT __declspec(dllexport)
+#else
+#   define EXPORT
+#endif
+
 // Defines a getter function for the engine to use to grab
 // an instance of your application.
 #define CREATE_APP_INSTANCE(_game_class) \
+extern "C" EXPORT \
 stapel::IApplication* CreateApplicationInstance() \
 { \
     auto* app = new _game_class(); \
