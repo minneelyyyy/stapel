@@ -20,7 +20,7 @@
 
 stapel::IApplication* GetApplication()
 {
-    HMODULE mod = LoadLibraryEx("libgame.dll", nullptr, 0x0);
+    HMODULE mod = LoadLibraryEx("bin\\Game.dll", nullptr, 0x0);
     if (!mod)
         return nullptr;
 

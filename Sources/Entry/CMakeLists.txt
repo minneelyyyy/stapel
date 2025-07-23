@@ -16,8 +16,13 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
             BUILD_RPATH "$ORIGIN/stapel"
     )
 
+    install(
+        TARGETS stapel_launcher
+        DESTINATION bin
+    )
+
     target_sources(
-        stapel_engine
+        StapelEngine
         PRIVATE
             Linux/GetApplication.cpp
     )
@@ -30,15 +35,20 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
             Windows/winmain.cpp
     )
 
+    install(
+        TARGETS stapel_launcher
+        DESTINATION bin
+    )
+
     target_sources(
-        stapel_engine
+        StapelEngine
         PRIVATE
             Windows/GetApplication.cpp
     )
 endif()
 
 target_sources(
-    stapel_engine
+    StapelEngine
     PRIVATE
         Entry.cpp
 )

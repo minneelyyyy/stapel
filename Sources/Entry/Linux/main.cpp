@@ -19,7 +19,7 @@
 
 #include <dlfcn.h>
 
-#define STAPEL_LIBRARY_SO "libstapel_engine.so"
+#define STAPEL_LIBRARY_SO "libStapelEngine.so"
 #define STAPEL_ENTRY_FN "stapel_engine_entry"
 
 int main(int argc, char **argv)

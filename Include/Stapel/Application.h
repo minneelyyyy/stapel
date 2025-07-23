@@ -31,8 +31,6 @@ namespace stapel
     class IApplication
     {
     public:
-        virtual ~IApplication() = 0;
-
         /// Called in the engine before anything else happens
         virtual void PreEngineInitHook(int, char **) {};
 
@@ -54,7 +52,7 @@ namespace stapel
 // Defines a getter function for the engine to use to grab
 // an instance of your application.
 #define CREATE_APP_INSTANCE(_game_class) \
-extern "C" STAPEL_API stapel::IApplication* CreateApplicationInstance() \
+stapel::IApplication* CreateApplicationInstance() \
 { \
     auto* app = new _game_class(); \
     return app; \

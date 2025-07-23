@@ -18,7 +18,7 @@
 
 #include <iostream>
 
-#define STAPEL_LIBRARY_DLL "stapel\\stapel_engine.dll"
+#define STAPEL_LIBRARY_DLL "bin\\StapelEngine.dll"
 #define STAPEL_ENTRY_SYMBOL "stapel_engine_entry"
 
 static void AlertLastError(const char *message)
