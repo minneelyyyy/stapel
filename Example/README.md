@@ -8,7 +8,7 @@ Once Stapel is stable there will be pre built SDKs for developers to download, b
 
 ### Install Dependencies (Linux)
 
-The following dependencies can be gotten from your system's package manager.
+The following dependencies can be installed from your system's package manager.
 
 - [Vulkan SDK](https://vulkan.lunarg.com/sdk/home)
 - either X11 or Wayland development libraries
@@ -22,7 +22,7 @@ The following dependencies can be gotten from your system's package manager.
 - [Vulkan SDK](https://vulkan.lunarg.com/sdk/home)
 - [Visual Studio 2022](https://visualstudio.microsoft.com/downloads/) (only for necessary C++ tools)
 
-You don't actually have to use Visual Studio 2022 for compilation of the SDK. Indeed, that use untested and unsupported. it is just the easiest way to get all needed build tools. It should be installed with `Desktop development with C++` enabled.
+You don't actually have to use Visual Studio 2022 for compilation of the SDK. Indeed, that use untested and unsupported. It is simply the easiest way to get all necessary build tools. It should be installed with `Desktop development with C++` enabled.
 
 ## Building the SDK
 
