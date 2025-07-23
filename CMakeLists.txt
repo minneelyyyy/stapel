@@ -20,6 +20,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_compile_definitions(stapel_engine PRIVATE TARGET_LINUX)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     target_compile_definitions(stapel_engine PRIVATE TARGET_WINDOWS)
+    target_compile_definitions(stapel_engine PRIVATE STAPEL_BUILD_DLL)
 else()
     message(SEND_FATAL "Unsupported operating system ${CMAKE_SYSTEM_NAME}")
 endif()
@@ -32,7 +33,6 @@ configure_file(
 
 target_include_directories(stapel_engine PRIVATE ${BIN}/generated)
 set_target_properties(stapel_engine PROPERTIES VERSION ${PROJECT_VERSION})
-target_compile_definitions(stapel_engine PRIVATE STAPEL_BUILD_DLL)
 
 FILE(GLOB_RECURSE PUBLIC_INCLUDES "${PROJECT_SOURCE_DIR}/Include/*")
 
