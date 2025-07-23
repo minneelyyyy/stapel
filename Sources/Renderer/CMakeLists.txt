@@ -7,7 +7,7 @@ if(Vulkan_FOUND)
     target_include_directories(stapel_engine PRIVATE ${Vulkan_INCLUDE_DIR})
     target_link_libraries(stapel_engine PRIVATE ${Vulkan_LIBRARIES})
 else()
-    message(FATAL_ERROR "Vulkan SDK not found on your system.")
+    message(FATAL_ERROR "Vulkan SDK not found on the system.")
 endif()
 
 target_sources(
