@@ -29,7 +29,8 @@ To install, please go to https://vulkan.lunarg.com/sdk/home, and set up your SDK
 
 ## Prepare the Build System
 
-Run the command `cmake -G "Visual Studio 17 2022" -A x64 -S . -B build`
+Run the command `cmake -G "Visual Studio 17 2022" -A x64 -S . -B build`,
+or if desired use Ninja to build the engine with `cmake -G Ninja -S . -B build`
 
 ## Create Your Project
 
