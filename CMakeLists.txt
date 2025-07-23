@@ -82,3 +82,10 @@ install(
         ${CMAKE_CURRENT_BINARY_DIR}/StapelConfigVersion.cmake
     DESTINATION lib/cmake/Stapel
 )
+
+# add APACHE LICENSE notice to install directory under bin/NOTICE.txt
+install(
+    FILES "${CMAKE_CURRENT_SOURCE_DIR}/NOTICE"
+    DESTINATION notices
+    RENAME STAPEL-NOTICE.txt
+)
