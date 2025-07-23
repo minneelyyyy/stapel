@@ -1,5 +1,5 @@
 target_sources(
-    Stapel
+    stapel_engine
     PRIVATE
         VulkanRenderer.cpp
     PRIVATE FILE_SET HEADERS

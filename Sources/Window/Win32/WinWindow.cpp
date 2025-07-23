@@ -13,29 +13,4 @@
  * limitations under the License.
  */
 
-#pragma once
-
-#include <Stapel/Stapel.h>
-#include <Window/Window.h>
-
-#include <memory>
-
-namespace stapel
-{
-    namespace backend
-    {
-        class IRendererBackend
-        {
-        };
-    }
-
-    class Renderer
-    {
-    public:
-        Renderer(std::shared_ptr<Window> window, const RendererSpecification& spec);
-
-    private:
-        std::shared_ptr<Window> window_;
-        std::unique_ptr<backend::IRendererBackend> backend_;
-    };
-}
+#error Unimplemented file included in build

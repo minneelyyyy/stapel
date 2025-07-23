@@ -1,5 +1,5 @@
 target_sources(
-    Stapel
+    stapel_engine
     PRIVATE
         X11Window.cpp
     PRIVATE FILE_SET HEADERS

@@ -15,27 +15,14 @@
 
 #pragma once
 
-#include <Stapel/Stapel.h>
-#include <Window/Window.h>
-
-#include <memory>
+#include <string>
+#include <inttypes.h>
 
 namespace stapel
 {
-    namespace backend
+    struct WindowSpecification
     {
-        class IRendererBackend
-        {
-        };
-    }
-
-    class Renderer
-    {
-    public:
-        Renderer(std::shared_ptr<Window> window, const RendererSpecification& spec);
-
-    private:
-        std::shared_ptr<Window> window_;
-        std::unique_ptr<backend::IRendererBackend> backend_;
+        uint32_t width, height;
+        std::string title;
     };
 }

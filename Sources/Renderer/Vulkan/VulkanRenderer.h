@@ -27,7 +27,7 @@ namespace stapel::backend
     class VulkanRenderer : public IRendererBackend
     {
     public:
-        VulkanRenderer(std::shared_ptr<Window> window, ApplicationInfo app);
+        VulkanRenderer(std::shared_ptr<Window> window, const RendererSpecification& app);
         ~VulkanRenderer();
 
     private:

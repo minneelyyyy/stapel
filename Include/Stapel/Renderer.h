@@ -15,27 +15,21 @@
 
 #pragma once
 
-#include <Stapel/Stapel.h>
-#include <Window/Window.h>
-
-#include <memory>
-
 namespace stapel
 {
     namespace backend
     {
-        class IRendererBackend
-        {
+        enum BackendAPI {
+            Unknown,
+            Vulkan_1_3,
         };
     }
 
-    class Renderer
-    {
-    public:
-        Renderer(std::shared_ptr<Window> window, const RendererSpecification& spec);
+    class ApplicationInfo;
 
-    private:
-        std::shared_ptr<Window> window_;
-        std::unique_ptr<backend::IRendererBackend> backend_;
+    struct RendererSpecification
+    {
+        backend::BackendAPI backend = backend::BackendAPI::Unknown;
+        ApplicationInfo& app;
     };
 }

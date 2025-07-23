@@ -15,12 +15,6 @@
 
 #pragma once
 
-#include <string>
-
-namespace stapel
-{
-    struct ApplicationInfo {
-        std::string name_;
-        int v_major, v_minor, v_patch;
-    };
-}
+#include "Application.h"
+#include "Renderer.h"
+#include "Window.h"

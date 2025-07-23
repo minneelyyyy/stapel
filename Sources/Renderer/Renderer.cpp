@@ -26,14 +26,14 @@
 
 namespace stapel
 {
-    Renderer::Renderer(std::shared_ptr<Window> window, backend::BackendAPI api, ApplicationInfo app)
+    Renderer::Renderer(std::shared_ptr<Window> window, const RendererSpecification& spec)
         : window_(window)
     {
-        switch (api)
+        switch (spec.backend)
         {
             case backend::BackendAPI::Vulkan_1_3:
 #ifdef VULKAN_ENABLED
-                backend_ = std::make_unique<backend::VulkanRenderer>(window_, app);
+                backend_ = std::make_unique<backend::VulkanRenderer>(window_, spec);
 #else
                 throw std::runtime_error("Vulkan renderer API selected but support not compiled into engine.");
 #endif

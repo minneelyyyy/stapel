@@ -15,12 +15,12 @@
 
 #pragma once
 
+#include <Stapel/Stapel.h>
+
 #ifdef VULKAN_ENABLED
 #include <vulkan/vulkan.h>
 #endif
 
-#include <cstdint>
-#include <string>
 #include <memory>
 
 namespace stapel
@@ -42,7 +42,7 @@ namespace stapel
     class Window
     {
     public:
-        Window(uint32_t width, uint32_t height, const std::string& title);
+        Window(const WindowSpecification& spec);
         backend::IWindowBackend& GetBackend();
 
     private:

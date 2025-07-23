@@ -33,7 +33,9 @@
 
 namespace stapel::backend
 {
-    VulkanRenderer::VulkanRenderer(std::shared_ptr<Window> window, ApplicationInfo app)
+    VulkanRenderer::VulkanRenderer(
+            std::shared_ptr<Window> window,
+            const RendererSpecification& spec)
         : window_(window)
     {
         auto& backend = window_->GetBackend();
@@ -55,11 +57,13 @@ namespace stapel::backend
 
         VkApplicationInfo appinfo {};
         appinfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-        appinfo.pApplicationName = app.name_.c_str();
-        appinfo.applicationVersion = VK_MAKE_VERSION(app.v_major, app.v_minor, app.v_patch);
+        appinfo.pApplicationName = spec.app.name.c_str();
+        appinfo.applicationVersion = VK_MAKE_VERSION(spec.app.v_major,
+                                                     spec.app.v_minor, spec.app.v_patch);
         appinfo.pEngineName = "Stapel";
-        appinfo.engineVersion = VK_MAKE_VERSION(STAPEL_VERSION_MAJOR, STAPEL_VERSION_MINOR, STAPEL_VERSION_PATCH);
-        appinfo.apiVersion = VK_API_VERSION_1_4;
+        appinfo.engineVersion = VK_MAKE_VERSION(STAPEL_VERSION_MAJOR,
+                                                STAPEL_VERSION_MINOR, STAPEL_VERSION_PATCH);
+        appinfo.apiVersion = VK_API_VERSION_1_3;
 
         VkInstanceCreateInfo info {};
         info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;

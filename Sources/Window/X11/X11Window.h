@@ -24,7 +24,7 @@ namespace stapel::backend
     class X11Window : public IWindowBackend
     {
     public:
-        X11Window(uint32_t width, uint32_t height, const std::string& title);
+        X11Window(const WindowSpecification& spec);
         ~X11Window();
 
 #ifdef VULKAN_ENABLED

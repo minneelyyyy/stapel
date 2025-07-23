@@ -17,18 +17,27 @@
 
 #include <Window/Window.h>
 
+#include <wayland-client.h>
+
 namespace stapel::backend
 {
+    struct WaylandState {
+        ::wl_compositor* compositor;
+    };
+
     class WaylandWindow : public IWindowBackend
     {
     public:
-        WaylandWindow(uint32_t width, uint32_t height, const std::string& title);
+        WaylandWindow(const WindowSpecification& spec);
         ~WaylandWindow();
 
 #ifdef VULKAN_ENABLED
         VkSurfaceKHR GetVulkanSurface(VkInstance instance) override;
 #endif
-
         IWindowBackend::Backend GetBackendType() const override { return IWindowBackend::Wayland; }
+
+    private:
+        ::wl_display* display_;
+        WaylandState state_;
     };
 }

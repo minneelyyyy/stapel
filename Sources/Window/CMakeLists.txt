@@ -1,25 +1,25 @@
 cmake_minimum_required(VERSION 3.25)
 
-if(UNIX AND NOT MACOS)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     find_package(X11)
     find_package(Wayland)
 
     if(Wayland_FOUND)
         add_subdirectory(Wayland)
-        target_compile_definitions(Stapel PRIVATE WAYLAND_ENABLED)
-        target_include_directories(Stapel PRIVATE ${Wayland_INCLUDE_DIR})
-        target_link_libraries(Stapel PRIVATE ${Wayland_LIBRARIES})
+        target_compile_definitions(stapel_engine PRIVATE WAYLAND_ENABLED)
+        target_include_directories(stapel_engine PRIVATE ${Wayland_INCLUDE_DIR})
+        target_link_libraries(stapel_engine PRIVATE ${Wayland_LIBRARIES})
     endif()
     if(X11_FOUND)
         add_subdirectory(X11)
-        target_compile_definitions(Stapel PRIVATE X11_ENABLED)
-        target_include_directories(Stapel PRIVATE ${X11_INCLUDE_DIR})
-        target_link_libraries(Stapel PRIVATE ${X11_LIBRARIES})
+        target_compile_definitions(stapel_engine PRIVATE X11_ENABLED)
+        target_include_directories(stapel_engine PRIVATE ${X11_INCLUDE_DIR})
+        target_link_libraries(stapel_engine PRIVATE ${X11_LIBRARIES})
     endif()
 endif()
 
 target_sources(
-    Stapel
+    stapel_engine
     PRIVATE
         Window.cpp
     PRIVATE FILE_SET HEADERS

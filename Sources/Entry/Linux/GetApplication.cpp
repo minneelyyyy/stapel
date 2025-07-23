@@ -13,29 +13,26 @@
  * limitations under the License.
  */
 
-#pragma once
+#include <Stapel/Application.h>
 
-#include <Stapel/Stapel.h>
-#include <Window/Window.h>
+#include <dlfcn.h>
 
-#include <memory>
-
-namespace stapel
+stapel::IApplication* GetApplication()
 {
-    namespace backend
+    void* handle = dlopen("libgame.so", RTLD_NOW);
+    if (!handle)
+        return nullptr;
+
+    using GetApplicationInstance = stapel::IApplication*(*)();
+    GetApplicationInstance CreateApplicationInstance =
+        reinterpret_cast<GetApplicationInstance>(dlsym(handle, "CreateApplicationInstance"));
+
+    if (!CreateApplicationInstance)
     {
-        class IRendererBackend
-        {
-        };
+        dlclose(handle);
+        return nullptr;
     }
 
-    class Renderer
-    {
-    public:
-        Renderer(std::shared_ptr<Window> window, const RendererSpecification& spec);
-
-    private:
-        std::shared_ptr<Window> window_;
-        std::unique_ptr<backend::IRendererBackend> backend_;
-    };
+    stapel::IApplication* app = CreateApplicationInstance();
+    return app;
 }

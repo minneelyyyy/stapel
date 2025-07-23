@@ -31,22 +31,22 @@
 
 namespace stapel
 {
-    Window::Window(uint32_t width, uint32_t height, const std::string& title)
+    Window::Window(const WindowSpecification& spec)
     {
 #ifdef TARGET_LINUX
 #   if defined(X11_ENABLED) && defined(WAYLAND_ENABLED)
         if (getenv("WAYLAND_DISPLAY")) {
-            window_ = std::make_unique<backend::WaylandWindow>(width, height, title);
+            window_ = std::make_unique<backend::WaylandWindow>(spec);
         } else if (getenv("DISPLAY")) {
-            window_ = std::make_unique<backend::X11Window>(width, height, title);
+            window_ = std::make_unique<backend::X11Window>(spec);
         }
 #   elif defined(X11_ENABLED)
-        window_ = std::make_unique<backend::X11Window>(width, height, title);
+        window_ = std::make_unique<backend::X11Window>(spec);
 #   elif defined(WAYLAND_ENABLED)
-        window_ = std::make_unique<backend::WaylandWindow>(width, height, title);
+        window_ = std::make_unique<backend::WaylandWindow>(spec);
 #   endif
 #elif TARGET_WINDOWS
-        window_ = std::make_unique<backend::Win32Window>(width, height, title);
+        window_ = std::make_unique<backend::Win32Window>(spec);
 #endif
         if (!window_)
             throw std::runtime_error("failed to create window. Are you running in a graphical environment?");
