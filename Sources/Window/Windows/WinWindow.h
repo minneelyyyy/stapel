@@ -13,4 +13,30 @@
  * limitations under the License.
  */
 
-#error Unimplemented file included in build
+#pragma once
+
+#include <Window/Window.h>
+
+#define WINDOWS_LEAN_AND_MEAN
+#include <Windows.h>
+
+#include <vulkan/vulkan.h>
+
+namespace stapel::backend
+{
+    class Win32Window : public IWindowBackend
+    {
+    public:
+        Win32Window(const WindowSpecification& spec);
+        ~Win32Window();
+
+#ifdef VULKAN_ENABLED
+        VkSurfaceKHR GetVulkanSurface(VkInstance instance) override;
+#endif
+
+        IWindowBackend::Backend GetBackendType() const override { return IWindowBackend::Windows; }
+    private:
+        HINSTANCE instance_;
+        HWND hwnd_;
+    };
+}

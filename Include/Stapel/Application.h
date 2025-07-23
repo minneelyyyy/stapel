@@ -54,7 +54,7 @@ namespace stapel
 // Defines a getter function for the engine to use to grab
 // an instance of your application.
 #define CREATE_APP_INSTANCE(_game_class) \
-extern "C" stapel::IApplication* CreateApplicationInstance() \
+extern "C" STAPEL_API stapel::IApplication* CreateApplicationInstance() \
 { \
     auto* app = new _game_class(); \
     return app; \

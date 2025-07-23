@@ -23,7 +23,7 @@
 #       include "Wayland/WlWindow.h"
 #   endif
 #elif TARGET_WINDOWS
-#   include "Win32/WinWindow.h"
+#   include "Windows/WinWindow.h"
 #endif
 
 #include <memory>

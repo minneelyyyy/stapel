@@ -13,4 +13,68 @@
  * limitations under the License.
  */
 
-#error Unimplemented file included in build
+#define WINDOWS_LEAN_AND_MEAN
+#include <Windows.h>
+
+#include <iostream>
+
+#define STAPEL_LIBRARY_DLL "stapel\\stapel_engine.dll"
+#define STAPEL_ENTRY_SYMBOL "stapel_engine_entry"
+
+static void AlertLastError(const char *message)
+{
+	LPVOID lpMsgBuf;
+    char msgBuf[2048] = "";
+	DWORD dw = GetLastError();
+
+    if (FormatMessage(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER |
+        FORMAT_MESSAGE_FROM_SYSTEM |
+        FORMAT_MESSAGE_IGNORE_INSERTS,
+        NULL,
+        dw,
+        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        (LPTSTR) &lpMsgBuf,
+        0, NULL) == 0)
+    {
+        MessageBox(NULL, TEXT("FormatMessage failed"), TEXT("Error"), MB_OK);
+        ExitProcess(dw);
+    }
+
+    ::snprintf(msgBuf, sizeof(msgBuf), "%s: %s", message, (char*)lpMsgBuf);
+    MessageBox(NULL, (LPCTSTR)msgBuf, TEXT("Error"), MB_OK);
+
+    LocalFree(lpMsgBuf);
+}
+
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
+{
+	HMODULE mod = LoadLibraryEx(STAPEL_LIBRARY_DLL, nullptr, 0x0);
+	if (!mod)
+	{
+		AlertLastError("Failed to load " STAPEL_LIBRARY_DLL);
+		return -1;
+	}
+
+    using Entry = int (*)(int, char**);
+    Entry fnEntry = reinterpret_cast<Entry>(GetProcAddress(mod, STAPEL_ENTRY_SYMBOL));
+
+    if (!fnEntry)
+    {
+        AlertLastError("Failed to load symbol " STAPEL_ENTRY_SYMBOL " from " STAPEL_LIBRARY_DLL ".");
+        FreeLibrary(mod);
+        return -1;
+    }
+
+    // The engine just uses GetModuleHandle in Window creation so it doesn't need to be passed around
+    // during the initialization phase.
+    int r = fnEntry(__argc, __argv);
+
+    if (r != 0)
+    {
+        MessageBox(NULL, (LPCTSTR) "Engine entry return indicated failure.", TEXT("Error"), MB_OK);
+        return r;
+    }
+
+	return 0;
+}

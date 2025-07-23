@@ -15,7 +15,12 @@
 
 #pragma once
 
-#include "StapelAPI.h"
-#include "Application.h"
-#include "Renderer.h"
-#include "Window.h"
+#ifdef TARGET_WINDOWS
+#	ifdef STAPEL_BUILD_DLL
+#		define STAPEL_API __declspec(dllexport)
+#	else
+#		define STAPEL_API __declspec(dllimport)
+#	endif
+#else
+#	define STAPEL_API
+#endif

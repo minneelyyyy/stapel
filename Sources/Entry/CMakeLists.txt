@@ -1,7 +1,7 @@
 
-add_executable(stapel_launcher)
-
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    add_executable(stapel_launcher)
+
     target_sources(
         stapel_launcher
         PRIVATE
@@ -22,10 +22,18 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
             Linux/GetApplication.cpp
     )
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    add_executable(stapel_launcher WIN32)
+
     target_sources(
         stapel_launcher
         PRIVATE
             Windows/winmain.cpp
+    )
+
+    target_sources(
+        stapel_engine
+        PRIVATE
+            Windows/GetApplication.cpp
     )
 endif()
 

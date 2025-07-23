@@ -13,13 +13,27 @@
  * limitations under the License.
  */
 
-#pragma once
+#include <Stapel/Application.h>
 
-#include <Window/Window.h>
+#define WINDOWS_LEAN_AND_MEAN
+#include <windows.h>
 
-namespace stapel::backend
+stapel::IApplication* GetApplication()
 {
-    class Win32Window : public IWindowBackend
+    HMODULE mod = LoadLibraryEx("libgame.dll", nullptr, 0x0);
+    if (!mod)
+        return nullptr;
+
+    using GetApplicationInstance = stapel::IApplication* (*)();
+    GetApplicationInstance CreateApplicationInstance =
+        reinterpret_cast<GetApplicationInstance>(GetProcAddress(mod, "CreateApplicationInstance"));
+
+    if (!CreateApplicationInstance)
     {
-    };
+        FreeLibrary(mod);
+        return nullptr;
+    }
+
+    auto* app = CreateApplicationInstance();
+    return app;
 }

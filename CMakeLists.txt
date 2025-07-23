@@ -19,7 +19,7 @@ add_library(stapel_engine SHARED)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_compile_definitions(stapel_engine PRIVATE TARGET_LINUX)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    target_compile_definitions(stapel_engine PRIVATE TARGET_WINDOWSD)
+    target_compile_definitions(stapel_engine PRIVATE TARGET_WINDOWS)
 else()
     message(SEND_FATAL "Unsupported operating system ${CMAKE_SYSTEM_NAME}")
 endif()
@@ -32,6 +32,9 @@ configure_file(
 
 target_include_directories(stapel_engine PRIVATE ${BIN}/generated)
 set_target_properties(stapel_engine PROPERTIES VERSION ${PROJECT_VERSION})
+target_compile_definitions(stapel_engine PRIVATE STAPEL_BUILD_DLL)
+
+FILE(GLOB_RECURSE PUBLIC_INCLUDES "${PROJECT_SOURCE_DIR}/Include/*")
 
 target_sources(
     stapel_engine
@@ -39,10 +42,7 @@ target_sources(
         TYPE HEADERS
         BASE_DIRS "${PROJECT_SOURCE_DIR}/Include"
         FILES
-            "Include/Stapel/Stapel.h"
-            "Include/Stapel/Application.h"
-            "Include/Stapel/Renderer.h"
-            "Include/Stapel/Window.h"
+            ${PUBLIC_INCLUDES}
 )
 
 add_subdirectory(${SRC})

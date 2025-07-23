@@ -7,9 +7,13 @@
 
 extern stapel::IApplication* GetApplication();
 
-extern "C" int stapel_engine_entry(int argc, char **argv)
+extern "C" STAPEL_API
+int stapel_engine_entry(int argc, char **argv)
 {
     stapel::IApplication* app = GetApplication();
+    if (!app)
+        return 1;
+
     app->PreEngineInitHook(argc, argv);
 
     stapel::RendererSpecification spec {
