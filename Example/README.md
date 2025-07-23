@@ -78,8 +78,8 @@ The current expected structure for any Stapel game is as follows
 ```
 <game>
 ├── bin
-│   ├── libStapelEngine.dll
-│   └── libGame.dll
+│   ├── StapelEngine.dll
+│   └── Game.dll
 └── stapel_launcher.exe
 ```
 
