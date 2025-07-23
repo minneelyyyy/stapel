@@ -20,7 +20,9 @@
 #define WINDOWS_LEAN_AND_MEAN
 #include <Windows.h>
 
+#ifdef VULKAN_ENABLED
 #include <vulkan/vulkan.h>
+#endif
 
 namespace stapel::backend
 {

@@ -15,8 +15,10 @@
 
 #include "WinWindow.h"
 
+#ifdef VULKAN_ENABLED
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_win32.h>
+#endif
 
 #include <stdexcept>
 
@@ -100,7 +102,7 @@ namespace stapel::backend
 
 		VkSurfaceKHR surface;
 		if (vkCreateWin32SurfaceKHR(instance, &info, nullptr, &surface) != VK_SUCCESS)
-			return nullptr;
+			return surface;
 
 		return surface;
 	}
