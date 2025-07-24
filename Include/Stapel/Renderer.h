@@ -30,6 +30,6 @@ namespace stapel
     struct RendererSpecification
     {
         backend::BackendAPI backend = backend::BackendAPI::Unknown;
-        ApplicationInfo& app;
+        const ApplicationInfo& app;
     };
 }

@@ -8,14 +8,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
             Linux/main.cpp
     )
 
-    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-
-    set_target_properties(
-        stapel_launcher
-        PROPERTIES
-            BUILD_RPATH "$ORIGIN/stapel"
-    )
-
     install(
         TARGETS stapel_launcher
         DESTINATION bin

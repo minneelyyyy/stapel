@@ -45,7 +45,7 @@ namespace stapel
         virtual void RendererCreateSpecHook(RendererSpecification& spec) {}
 
         /// Returns the application info struct for this application
-        virtual ApplicationInfo& GetApplicationInfo() = 0;
+        virtual const ApplicationInfo& GetApplicationInfo() = 0;
     };
 }
 

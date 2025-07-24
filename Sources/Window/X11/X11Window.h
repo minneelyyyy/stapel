@@ -25,7 +25,7 @@ namespace stapel::backend
     {
     public:
         X11Window(const WindowSpecification& spec);
-        ~X11Window();
+        ~X11Window() override;
 
 #ifdef VULKAN_ENABLED
         VkSurfaceKHR GetVulkanSurface(VkInstance instance) override;

@@ -30,7 +30,7 @@ namespace stapel::backend
     {
     public:
         Win32Window(const WindowSpecification& spec);
-        ~Win32Window();
+        ~Win32Window() override;
 
 #ifdef VULKAN_ENABLED
         VkSurfaceKHR GetVulkanSurface(VkInstance instance) override;

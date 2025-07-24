@@ -30,10 +30,11 @@ namespace stapel
         class IWindowBackend
         {
         public:
+            virtual ~IWindowBackend() = default;
+
 #ifdef VULKAN_ENABLED
             virtual VkSurfaceKHR GetVulkanSurface(VkInstance instance) = 0;
 #endif
-
             enum Backend { Wayland, X11, Windows };
             virtual Backend GetBackendType() const = 0;
         };

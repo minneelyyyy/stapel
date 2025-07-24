@@ -30,14 +30,16 @@ int stapel_engine_entry(int argc, char **argv)
 
     app->PreEngineInitHook(argc, argv);
 
-    stapel::RendererSpecification spec {
-        .app = app->GetApplicationInfo(),
-    };
-
     stapel::WindowSpecification winspec {};
     app->WindowCreateSpecHook(winspec);
 
     auto window = std::make_shared<stapel::Window>(winspec);
+
+    stapel::RendererSpecification spec {
+        .backend = stapel::backend::Vulkan_1_3,
+        .app = app->GetApplicationInfo(),
+    };
+
     stapel::Renderer renderer(window, spec);
 
     return 0;

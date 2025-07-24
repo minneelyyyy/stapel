@@ -29,7 +29,7 @@ namespace stapel::backend
     {
     public:
         WaylandWindow(const WindowSpecification& spec);
-        ~WaylandWindow();
+        ~WaylandWindow() override;
 
 #ifdef VULKAN_ENABLED
         VkSurfaceKHR GetVulkanSurface(VkInstance instance) override;

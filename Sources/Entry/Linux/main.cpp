@@ -19,7 +19,7 @@
 
 #include <dlfcn.h>
 
-#define STAPEL_LIBRARY_SO "libStapelEngine.so"
+#define STAPEL_LIBRARY_SO "bin/libStapelEngine.so"
 #define STAPEL_ENTRY_FN "stapel_engine_entry"
 
 int main(int argc, char **argv)
@@ -28,7 +28,7 @@ int main(int argc, char **argv)
     if (!handle) {
         std::cout
             << "Error: Could not locate dynamic library `" << STAPEL_LIBRARY_SO << "': "
-            << strerror(errno) << "\n";
+            << dlerror() << "\n";
 
         return 1;
     }
@@ -39,7 +39,7 @@ int main(int argc, char **argv)
         std::cout
             << "Error: Failed to load `" << STAPEL_ENTRY_FN
             <<"' from " << STAPEL_LIBRARY_SO << ": "
-            << strerror(errno) << "\n";
+            << dlerror() << "\n";
 
         dlclose(handle);
 

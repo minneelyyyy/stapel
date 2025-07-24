@@ -15,13 +15,16 @@
 
 #include <Stapel/Application.h>
 
+#include <iostream>
 #include <dlfcn.h>
 
 stapel::IApplication* GetApplication()
 {
-    void* handle = dlopen("libgame.so", RTLD_NOW);
-    if (!handle)
+    void* handle = dlopen("bin/libgame.so", RTLD_NOW);
+    if (!handle) {
+        std::cout << "Failed to load application library: " << dlerror() << std::endl;
         return nullptr;
+    }
 
     using GetApplicationInstance = stapel::IApplication*(*)();
     GetApplicationInstance CreateApplicationInstance =
@@ -29,6 +32,7 @@ stapel::IApplication* GetApplication()
 
     if (!CreateApplicationInstance)
     {
+        std::cout << "Failed to find CreateApplicationInstance symbol: " << dlerror() << std::endl;
         dlclose(handle);
         return nullptr;
     }
