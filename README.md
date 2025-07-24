@@ -1,6 +1,6 @@
 # Stapel
 
-An in development game engine framework.
+An in development game engine In C++ supporting Linux & Windows.
 
 # Setup
 
