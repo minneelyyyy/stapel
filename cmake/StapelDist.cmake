@@ -73,5 +73,8 @@ function(stapel_dist_add_target)
     set(tgt_file_path "${arg_INSTALL_DESTINATION}/${tgt_file}")
     set(dest_file_path "${arg_DIST_DESTINATION}/${dest_file}")
 
+    cmake_path(NATIVE_PATH tgt_file_path NORMALIZE tgt_file_path)
+    cmake_path(NATIVE_PATH dest_file_path NORMALIZE dest_file_path)
+
     file(APPEND "${DISTMANIN}" "${tgt_file_path}\t${dest_file_path}\n")
 endfunction()
