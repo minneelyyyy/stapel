@@ -14,6 +14,9 @@ set(BIN "${CMAKE_CURRENT_BINARY_DIR}")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
+include(StapelDist)
+stapel_dist_init()
+
 add_library(StapelEngine SHARED)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
@@ -56,6 +59,11 @@ install(
 	LIBRARY DESTINATION bin
 )
 
+stapel_dist_add_target(
+    TARGET StapelEngine
+    INSTALL_DESTINATION bin
+)
+
 install(
     EXPORT StapelEngineTargets
     FILE StapelTargets.cmake
@@ -85,6 +93,13 @@ install(
 
 install(
     FILES "${CMAKE_CURRENT_SOURCE_DIR}/NOTICE"
-    DESTINATION notices
-    RENAME STAPEL-NOTICE.txt
+    DESTINATION .
 )
+
+stapel_dist_add_file(
+    FILE NOTICE
+    DESTINATION legal/STAPEL-NOTICE.txt
+)
+
+stapel_dist_generate_manifest()
+stapel_dist_install_manifest()

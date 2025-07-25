@@ -13,6 +13,13 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         DESTINATION bin
     )
 
+    include(StapelDist)
+    stapel_dist_add_target(
+        TARGET stapel_launcher
+        INSTALL_DESTINATION bin
+        DIST_DESTINATION .
+    )
+
     target_sources(
         StapelEngine
         PRIVATE
@@ -30,6 +37,13 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     install(
         TARGETS stapel_launcher
         DESTINATION bin
+    )
+
+    include(StapelDist)
+    stapel_dist_add_target(
+        TARGET stapel_launcher
+        INSTALL_DESTINATION bin
+        DIST_DESTINATION .
     )
 
     target_sources(
