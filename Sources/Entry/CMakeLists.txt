@@ -1,57 +1,23 @@
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     add_executable(stapel_launcher)
-
-    target_sources(
-        stapel_launcher
-        PRIVATE
-            Linux/main.cpp
-    )
-
-    install(
-        TARGETS stapel_launcher
-        DESTINATION bin
-    )
-
-    include(StapelDist)
-    stapel_dist_add_target(
-        TARGET stapel_launcher
-        INSTALL_DESTINATION bin
-        DIST_DESTINATION .
-    )
-
-    target_sources(
-        StapelEngine
-        PRIVATE
-            Linux/GetApplication.cpp
-    )
+    add_subdirectory(Linux)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     add_executable(stapel_launcher WIN32)
-
-    target_sources(
-        stapel_launcher
-        PRIVATE
-            Windows/winmain.cpp
-    )
-
-    install(
-        TARGETS stapel_launcher
-        DESTINATION bin
-    )
-
-    include(StapelDist)
-    stapel_dist_add_target(
-        TARGET stapel_launcher
-        INSTALL_DESTINATION bin
-        DIST_DESTINATION .
-    )
-
-    target_sources(
-        StapelEngine
-        PRIVATE
-            Windows/GetApplication.cpp
-    )
+    add_subdirectory(Windows)
 endif()
+
+install(
+    TARGETS stapel_launcher
+    DESTINATION bin
+)
+
+include(StapelDist)
+stapel_dist_add_target(
+    TARGET stapel_launcher
+    INSTALL_DESTINATION bin
+    DIST_DESTINATION .
+)
 
 target_sources(
     StapelEngine
