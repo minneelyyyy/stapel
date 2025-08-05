@@ -15,6 +15,7 @@
 
 #pragma once
 
+#include "StapelAPI.h"
 #include "Window.h"
 #include "Renderer.h"
 
@@ -28,20 +29,20 @@ namespace stapel
         int v_major, v_minor, v_patch;
     };
 
-    class IApplication
+    class STAPEL_API IApplication
     {
     public:
         /// Called in the engine before anything else happens
-        virtual void PreEngineInitHook(int, char **) {};
+        virtual void PreEngineInitHook(int, char **) {}
 
-        /// Used to control window behavior
-        virtual void WindowCreateSpecHook(WindowSpecification& spec)
-        {
-            spec.width = 1200;
+        /// Used to configure window behavior
+        virtual void WindowCreateSpecHook(WindowSpecification& spec) {
+            spec.width = 1600;
             spec.height = 900;
-            spec.title = "Stapel Game";
+            spec.title = "Hello!";
         }
 
+        /// Used to configure renderer behaviour
         virtual void RendererCreateSpecHook(RendererSpecification& spec) {}
 
         /// Returns the application info struct for this application

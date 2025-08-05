@@ -21,17 +21,17 @@
 
 namespace stapel::backend
 {
-    class X11Window : public IWindowBackend
+    class X11Window : public Window
     {
     public:
         X11Window(const WindowSpecification& spec);
         ~X11Window() override;
 
 #ifdef VULKAN_ENABLED
-        VkSurfaceKHR GetVulkanSurface(VkInstance instance) override;
+        VkSurfaceKHR CreateVulkanSurface(VkInstance instance) override;
 #endif
 
-        IWindowBackend::Backend GetBackendType() const override { return IWindowBackend::X11; }
+        Window::Backend GetBackendType() const override { return Window::X11; }
 
     private:
         ::Display* display_;

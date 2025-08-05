@@ -66,7 +66,7 @@ namespace stapel::backend
     }
 
 #ifdef VULKAN_ENABLED
-    VkSurfaceKHR WaylandWindow::GetVulkanSurface(VkInstance instance)
+    VkSurfaceKHR WaylandWindow::CreateVulkanSurface(VkInstance instance)
     {
         wl_surface* surface = wl_compositor_create_surface(state_.compositor);
         if (!surface)

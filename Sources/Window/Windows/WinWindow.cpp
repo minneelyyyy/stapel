@@ -22,6 +22,8 @@
 
 #include <stdexcept>
 
+int width = 800, height = 600;
+
 void OnSize(HWND hwnd, UINT flag, int width, int height)
 {
 	// Handle resizing
@@ -33,8 +35,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_SIZE:
 	{
-		int width = LOWORD(lParam);  // Macro to get the low-order word.
-		int height = HIWORD(lParam); // Macro to get the high-order word.
+		width = LOWORD(lParam);  // Macro to get the low-order word.
+		height = HIWORD(lParam); // Macro to get the high-order word.
 
 		// Respond to the message:
 		OnSize(hwnd, (UINT)wParam, width, height);
@@ -62,6 +64,9 @@ namespace stapel::backend
 
 		RegisterClass(&wc);
 
+		width = spec.width;
+		height = spec.height;
+
 		hwnd_ = CreateWindowEx(
 			0,
 			CLASS_NAME,
@@ -69,7 +74,7 @@ namespace stapel::backend
 			WS_OVERLAPPEDWINDOW,
 
 			// Size and position
-			CW_USEDEFAULT, CW_USEDEFAULT, spec.width, spec.height,
+			CW_USEDEFAULT, CW_USEDEFAULT, width, height,
 
 			NULL,
 			NULL,
@@ -92,8 +97,18 @@ namespace stapel::backend
 		UnregisterClass(CLASS_NAME, instance_);
 	}
 
+	uint32_t Win32Window::Width() const
+	{
+		return static_cast<uint32_t>(width);
+	}
+
+	uint32_t Win32Window::Height() const
+	{
+		return static_cast<uint32_t>(height);
+	}
+
 #ifdef VULKAN_ENABLED
-	VkSurfaceKHR Win32Window::GetVulkanSurface(VkInstance instance)
+	VkSurfaceKHR Win32Window::CreateVulkanSurface(VkInstance instance)
 	{
 		VkWin32SurfaceCreateInfoKHR info {};
 		info.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;

@@ -22,20 +22,11 @@
 
 namespace stapel
 {
-    namespace backend
-    {
-        class IRendererBackend
-        {
-        };
-    }
-
     class Renderer
     {
     public:
-        Renderer(std::shared_ptr<Window> window, const RendererSpecification& spec);
-
-    private:
-        std::shared_ptr<Window> window_;
-        std::unique_ptr<backend::IRendererBackend> backend_;
+        virtual void Init(const ApplicationInfo& app) = 0;
     };
+
+    std::unique_ptr<Renderer> CreateBackend(std::shared_ptr<Window> window, const RendererSpecification& spec);
 }

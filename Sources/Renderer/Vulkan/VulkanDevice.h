@@ -15,37 +15,36 @@
 
 #pragma once
 
-#include <Stapel/Stapel.h>
 #include <Renderer/Renderer.h>
-#include "VulkanDevice.h"
 
 #include <vulkan/vulkan.h>
 
-#include <memory>
+#include <optional>
 
 namespace stapel::backend
 {
-    class VulkanRenderer : public Renderer
+    struct QueueFamilyIndices
+    {
+        std::optional<uint32_t> graphicsFamily;
+        std::optional<uint32_t> presentFamily;
+    };
+
+    class VulkanDevice
     {
     public:
-        VulkanRenderer(std::shared_ptr<Window> window);
-        ~VulkanRenderer();
+        VulkanDevice(VkInstance instance, VkSurfaceKHR surface);
+        ~VulkanDevice();
 
-        void Init(const ApplicationInfo& app);
-        void CreateInstance(const ApplicationInfo& app);
-        void CreateSurface();
-        void SelectDevice();
-        void CreateSwapBuffer();
-
-    private:
-        VkSurfaceFormatKHR SelectBestSurfaceFormat();
-        VkPresentModeKHR SelectBestPresentMode();
-        VkExtent2D SelectBestExtent();
+        const QueueFamilyIndices& GetQueueFamilyIndices() const { return indices_; };
+        VkQueue GetGraphicsQueue() const { return graphicsQueue_; };
+        VkDevice GetVulkanDevice() const { return device_; };
+        VkPhysicalDevice GetVulkanPhysicalDevice() const { return physDevice_; };
 
     private:
-        VkInstance instance_ = VK_NULL_HANDLE;
-        VkSurfaceKHR surface_ = VK_NULL_HANDLE;
-        std::unique_ptr<VulkanDevice> device_;
-        std::shared_ptr<Window> window_;
+        VkPhysicalDevice physDevice_;
+        VkDevice device_;
+        QueueFamilyIndices indices_;
+        VkQueue graphicsQueue_;
+        VkQueue presentQueue_;
     };
 }

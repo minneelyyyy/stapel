@@ -20,7 +20,7 @@ static stapel::ApplicationInfo info {
     "Example", 0, 1, 0
 };
 
-class Example : public stapel::IApplication
+class __declspec(dllexport) Example : public stapel::IApplication
 {
 public:
     stapel::ApplicationInfo& GetApplicationInfo()

@@ -15,8 +15,9 @@
 
 #include <Stapel/Stapel.h>
 #include <Window/Window.h>
-#include <Renderer/Renderer.h>
+#include <Renderer/Vulkan/VulkanRenderer.h>
 
+#include <iostream>
 #include <memory>
 
 extern stapel::IApplication* GetApplication();
@@ -26,21 +27,22 @@ int stapel_engine_entry(int argc, char **argv)
 {
     stapel::IApplication* app = GetApplication();
     if (!app)
-        return 1;
+        STAPEL_FATAL("Failed to load application");
 
     app->PreEngineInitHook(argc, argv);
 
     stapel::WindowSpecification winspec {};
     app->WindowCreateSpecHook(winspec);
 
-    auto window = std::make_shared<stapel::Window>(winspec);
+    auto window = stapel::GetWindow(winspec);
 
     stapel::RendererSpecification spec {
-        .backend = stapel::backend::Vulkan_1_3,
+        .backend = stapel::backend::Vulkan_1_4,
         .app = app->GetApplicationInfo(),
     };
 
-    stapel::Renderer renderer(window, spec);
+    auto renderer = stapel::CreateBackend(window, spec);
+    renderer->Init(spec.app);
 
     return 0;
 }

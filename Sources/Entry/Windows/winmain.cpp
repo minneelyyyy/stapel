@@ -17,6 +17,7 @@
 #include <Windows.h>
 
 #include <iostream>
+#include <Stapel/Stapel.h>
 
 #define STAPEL_LIBRARY_DLL "bin\\StapelEngine.dll"
 #define STAPEL_ENTRY_SYMBOL "stapel_engine_entry"
@@ -47,7 +48,7 @@ static void AlertLastError(const char *message)
     LocalFree(lpMsgBuf);
 }
 
-int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nCmdShow)
 {
 	HMODULE mod = LoadLibraryEx(STAPEL_LIBRARY_DLL, nullptr, 0x0);
 	if (!mod)

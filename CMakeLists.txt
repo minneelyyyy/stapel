@@ -8,11 +8,12 @@ project(
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
 
-set(SRC "${CMAKE_CURRENT_SOURCE_DIR}/Sources")
-set(BIN "${CMAKE_CURRENT_BINARY_DIR}")
+set(SRC "${CMAKE_SOURCE_DIR}/Sources")
+set(BIN "${CMAKE_BINARY_DIR}")
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 include(StapelDist)
 stapel_dist_init()
@@ -92,8 +93,13 @@ install(
 )
 
 install(
-    FILES "${CMAKE_CURRENT_SOURCE_DIR}/NOTICE"
+    FILES "${CMAKE_SOURCE_DIR}/NOTICE"
     DESTINATION .
+)
+
+install(
+    FILES "${CMAKE_SOURCE_DIR}/Scripts/dist.py"
+    DESTINATION scripts
 )
 
 stapel_dist_add_file(

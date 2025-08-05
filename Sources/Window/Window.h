@@ -25,28 +25,20 @@
 
 namespace stapel
 {
-    namespace backend
-    {
-        class IWindowBackend
-        {
-        public:
-            virtual ~IWindowBackend() = default;
-
-#ifdef VULKAN_ENABLED
-            virtual VkSurfaceKHR GetVulkanSurface(VkInstance instance) = 0;
-#endif
-            enum Backend { Wayland, X11, Windows };
-            virtual Backend GetBackendType() const = 0;
-        };
-    }
-
     class Window
     {
     public:
-        Window(const WindowSpecification& spec);
-        backend::IWindowBackend& GetBackend();
+        virtual ~Window() = default;
 
-    private:
-        std::unique_ptr<backend::IWindowBackend> window_ = nullptr;
+        virtual uint32_t Width() const = 0;
+        virtual uint32_t Height() const = 0;
+
+#ifdef VULKAN_ENABLED
+        virtual VkSurfaceKHR CreateVulkanSurface(VkInstance instance) = 0;
+#endif
+        enum Backend { Wayland, X11, Windows };
+        virtual Backend GetBackendType() const = 0;
     };
+
+    std::shared_ptr<Window> GetWindow(const WindowSpecification& spec);
 }

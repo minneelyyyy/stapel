@@ -25,16 +25,16 @@ namespace stapel::backend
         ::wl_compositor* compositor;
     };
 
-    class WaylandWindow : public IWindowBackend
+    class WaylandWindow : public Window
     {
     public:
         WaylandWindow(const WindowSpecification& spec);
         ~WaylandWindow() override;
 
 #ifdef VULKAN_ENABLED
-        VkSurfaceKHR GetVulkanSurface(VkInstance instance) override;
+        VkSurfaceKHR CreateVulkanSurface(VkInstance instance) override;
 #endif
-        IWindowBackend::Backend GetBackendType() const override { return IWindowBackend::Wayland; }
+        Window::Backend GetBackendType() const override { return Window::Wayland; }
 
     private:
         ::wl_display* display_;

@@ -19,3 +19,26 @@
 #include "Application.h"
 #include "Renderer.h"
 #include "Window.h"
+
+#ifdef WIN32
+    #include <windows.h>
+#endif
+
+inline void stapel_fatal_impl(const char* format, ...) {
+    char buffer[2048];
+
+    va_list args;
+    va_start(args, format);
+    vsnprintf(buffer, sizeof(buffer), format, args);
+    va_end(args);
+
+#ifdef WIN32
+    MessageBoxA(nullptr, buffer, "Fatal Error", MB_ICONERROR | MB_OK);
+#else
+    fprintf(stderr, "Fatal Error: %s\n", buffer);
+#endif
+
+    std::exit(EXIT_FAILURE);
+}
+
+#define STAPEL_FATAL(...) stapel_fatal_impl(__VA_ARGS__)

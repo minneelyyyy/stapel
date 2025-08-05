@@ -20,6 +20,8 @@
 
 namespace stapel
 {
+    // This type MUST maintain ABI compatibility
+    // STL types can not be used here
     struct WindowSpecification
     {
         uint32_t width, height;

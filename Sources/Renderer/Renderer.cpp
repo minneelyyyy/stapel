@@ -13,33 +13,26 @@
  * limitations under the License.
  */
 
-#include "Renderer.h"
+#include <Renderer/Renderer.h>
+#include <Renderer/Vulkan/VulkanRenderer.h>
 
-#include <Stapel/Stapel.h>
+#include <Window/Window.h>
 
-#ifdef VULKAN_ENABLED
-#include "Vulkan/VulkanRenderer.h"
-#endif
-
-#include <memory>
 #include <stdexcept>
 
 namespace stapel
 {
-    Renderer::Renderer(std::shared_ptr<Window> window, const RendererSpecification& spec)
-        : window_(window)
+    std::unique_ptr<Renderer> CreateBackend(std::shared_ptr<Window> window, const RendererSpecification& spec)
     {
-        switch (spec.backend)
-        {
-            case backend::BackendAPI::Vulkan_1_3:
+        switch (spec.backend) {
+        case backend::Vulkan_1_4:
 #ifdef VULKAN_ENABLED
-                backend_ = std::make_unique<backend::VulkanRenderer>(window_, spec);
+            return std::make_unique<backend::VulkanRenderer>(window);
 #else
-                throw std::runtime_error("Vulkan renderer API selected but support not compiled into engine.");
+            throw std::runtime_error("Vulkan selected as backend but support is not built in to engine");
 #endif
-                break;
-            default:
-                throw std::runtime_error("Invalid/unsupported API selected.");
+        default:
+            throw std::runtime_error("No/Invalid renderer backend selected.");
         }
     }
 }

@@ -8,6 +8,8 @@ endif()
 
 list(APPEND CMAKE_PREFIX_PATH "$ENV{STAPEL_SDK}")
 
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")  # = `/MD`
+
 add_library(game SHARED Example.cpp)
 
 find_package(Stapel REQUIRED)

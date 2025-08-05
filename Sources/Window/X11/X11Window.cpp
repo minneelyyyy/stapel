@@ -49,7 +49,7 @@ namespace stapel::backend
     }
 
 #ifdef VULKAN_ENABLED
-    VkSurfaceKHR X11Window::GetVulkanSurface(VkInstance instance)
+    VkSurfaceKHR X11Window::CreateVulkanSurface(VkInstance instance)
     {
         VkXlibSurfaceCreateInfoKHR info {};
         info.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
