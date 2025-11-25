@@ -11,13 +11,13 @@ endif()
 
 install(
     TARGETS stapel_launcher
-    DESTINATION bin
+    DESTINATION .
 )
 
 include(StapelDist)
 stapel_dist_add_target(
     TARGET stapel_launcher
-    INSTALL_DESTINATION bin
+    INSTALL_DESTINATION .
     DIST_DESTINATION .
 )
 

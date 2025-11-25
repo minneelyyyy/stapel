@@ -20,29 +20,28 @@
 #include <iostream>
 #include <memory>
 
-extern stapel::IApplication* GetApplication();
-
 extern "C" STAPEL_API
 int stapel_engine_entry(int argc, char **argv)
 {
-    stapel::IApplication* app = GetApplication();
-    if (!app)
-        STAPEL_FATAL("Failed to load application");
-
-    app->PreEngineInitHook(argc, argv);
-
-    stapel::WindowSpecification winspec {};
-    app->WindowCreateSpecHook(winspec);
-
-    auto window = stapel::GetWindow(winspec);
-
-    stapel::RendererSpecification spec {
-        .backend = stapel::backend::Vulkan_1_4,
-        .app = app->GetApplicationInfo(),
+    stapel::Window::WindowSpecification spec = {
+        .width = 800,
+        .height = 600,
+        .title = "Stapel Game",
     };
+    
+    auto window = stapel::GetWindow(spec);
 
-    auto renderer = stapel::CreateBackend(window, spec);
-    renderer->Init(spec.app);
+    auto renderer = stapel::CreateBackend(
+        window,
+        stapel::Renderer::Backend::Vulkan,
+        "Stapel Game",
+        VK_MAKE_VERSION(0, 0, 1)
+    );
+
+    for (;;) {
+        std::cout << "frame :3" << std::endl;
+        renderer->DrawFrame();
+    }
 
     return 0;
 }

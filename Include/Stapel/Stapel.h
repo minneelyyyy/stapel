@@ -16,15 +16,16 @@
 #pragma once
 
 #include "StapelAPI.h"
-#include "Application.h"
-#include "Renderer.h"
-#include "Window.h"
 
 #ifdef WIN32
     #include <windows.h>
 #endif
 
-inline void stapel_fatal_impl(const char* format, ...) {
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+
+inline void _stapel_fatal_impl(const char* format, ...) {
     char buffer[2048];
 
     va_list args;
@@ -38,7 +39,9 @@ inline void stapel_fatal_impl(const char* format, ...) {
     fprintf(stderr, "Fatal Error: %s\n", buffer);
 #endif
 
-    std::exit(EXIT_FAILURE);
+    exit(EXIT_FAILURE);
 }
 
-#define STAPEL_FATAL(...) stapel_fatal_impl(__VA_ARGS__)
+#define INDEX_INVAL (0xFFFFFFFF)
+
+#define STAPEL_FATAL(...) _stapel_fatal_impl(__VA_ARGS__)

@@ -22,17 +22,17 @@
 
 namespace stapel
 {
-    std::unique_ptr<Renderer> CreateBackend(std::shared_ptr<Window> window, const RendererSpecification& spec)
+    std::unique_ptr<Renderer> CreateBackend(std::shared_ptr<Window> window, Renderer::Backend api, const char *name, uint32_t version)
     {
-        switch (spec.backend) {
-        case backend::Vulkan_1_4:
+        switch (api) {
+        case Renderer::Backend::Vulkan:
 #ifdef VULKAN_ENABLED
-            return std::make_unique<backend::VulkanRenderer>(window);
+            return std::make_unique<backend::VulkanRenderer>(window, name, version);
 #else
-            throw std::runtime_error("Vulkan selected as backend but support is not built in to engine");
+            STAPEL_FATAL("Vulkan selected as backend but support is not built in to engine");
 #endif
         default:
-            throw std::runtime_error("No/Invalid renderer backend selected.");
+            STAPEL_FATAL("No/Invalid renderer backend selected.");
         }
     }
 }

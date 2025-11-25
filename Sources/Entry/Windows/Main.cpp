@@ -50,7 +50,7 @@ static void AlertLastError(const char *message)
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nCmdShow)
 {
-	HMODULE mod = LoadLibraryEx(STAPEL_LIBRARY_DLL, nullptr, 0x0);
+	HMODULE mod = LoadLibraryExA(STAPEL_LIBRARY_DLL, nullptr, 0x0);
 	if (!mod)
 	{
 		AlertLastError("Failed to load " STAPEL_LIBRARY_DLL);

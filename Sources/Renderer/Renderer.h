@@ -25,8 +25,11 @@ namespace stapel
     class Renderer
     {
     public:
-        virtual void Init(const ApplicationInfo& app) = 0;
+        enum Backend { Vulkan };
+        virtual Backend GetBackend() const = 0; 
+
+        virtual void DrawFrame() = 0;
     };
 
-    std::unique_ptr<Renderer> CreateBackend(std::shared_ptr<Window> window, const RendererSpecification& spec);
+    std::unique_ptr<Renderer> CreateBackend(std::shared_ptr<Window> window, Renderer::Backend api, const char *name, uint32_t version);
 }

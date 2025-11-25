@@ -17,10 +17,10 @@
 
 #include <Stapel/Stapel.h>
 #include <Renderer/Renderer.h>
-#include "VulkanDevice.h"
 
 #include <vulkan/vulkan.h>
 
+#include <vector>
 #include <memory>
 
 namespace stapel::backend
@@ -28,24 +28,55 @@ namespace stapel::backend
     class VulkanRenderer : public Renderer
     {
     public:
-        VulkanRenderer(std::shared_ptr<Window> window);
+        VulkanRenderer(std::shared_ptr<Window> window, const char *name, uint32_t version);
         ~VulkanRenderer();
 
-        void Init(const ApplicationInfo& app);
-        void CreateInstance(const ApplicationInfo& app);
-        void CreateSurface();
-        void SelectDevice();
-        void CreateSwapBuffer();
+        Backend GetBackend() const;
+
+        void DrawFrame();
 
     private:
-        VkSurfaceFormatKHR SelectBestSurfaceFormat();
-        VkPresentModeKHR SelectBestPresentMode();
-        VkExtent2D SelectBestExtent();
+        struct FrameData {
+            VkCommandPool pool;
+            VkCommandBuffer buffer; 
+            VkSemaphore swapchain_semaphore, render_semaphore;
+            VkFence render_fence;
+        };
+
+        struct Device {
+            VkPhysicalDevice phys;
+            VkDevice device;
+            VkQueue queue;
+            uint32_t index;
+        };
+
+        struct Swapchain {
+            VkSwapchainKHR chain;
+            VkExtent2D extent;
+            VkFormat format;
+            std::vector<VkImage> images;
+            std::vector<VkImageView> image_views;
+        };
+
+        const static unsigned int FRAME_OVERLAP = 2;
 
     private:
-        VkInstance instance_ = VK_NULL_HANDLE;
-        VkSurfaceKHR surface_ = VK_NULL_HANDLE;
-        std::unique_ptr<VulkanDevice> device_;
+        static Swapchain CreateSwapchain(Window& window, VulkanRenderer::Device device, VkSurfaceKHR surface);
+        static Device CreateDevice(VkInstance instance, VkSurfaceKHR surface);
+
+        void DestroySwapchain(VkDevice device);
+
+        FrameData& GetFrame() { return frames_[frame_idx_ % FRAME_OVERLAP]; };
+
+    private:
         std::shared_ptr<Window> window_;
+        VkInstance instance_;
+        VkSurfaceKHR surface_;
+        Device device_;
+
+        Swapchain swapchain_;
+
+        FrameData frames_[FRAME_OVERLAP];
+        unsigned int frame_idx_ = 0;
     };
 }

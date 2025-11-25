@@ -31,7 +31,7 @@
 
 namespace stapel
 {
-    std::shared_ptr<Window> GetWindow(const WindowSpecification& spec)
+    std::shared_ptr<Window> GetWindow(const Window::WindowSpecification& spec)
     {
 #ifdef TARGET_LINUX
 #   if defined(X11_ENABLED) && defined(WAYLAND_ENABLED)

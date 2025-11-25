@@ -22,7 +22,7 @@
 
 #include <stdexcept>
 
-int width = 800, height = 600;
+static int width = 800, height = 600;
 
 void OnSize(HWND hwnd, UINT flag, int width, int height)
 {
@@ -70,7 +70,7 @@ namespace stapel::backend
 		hwnd_ = CreateWindowEx(
 			0,
 			CLASS_NAME,
-			spec.title.c_str(),
+			spec.title,
 			WS_OVERLAPPEDWINDOW,
 
 			// Size and position

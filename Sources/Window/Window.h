@@ -25,9 +25,15 @@
 
 namespace stapel
 {
+    
     class Window
     {
     public:
+        struct WindowSpecification {
+            int width, height;
+            const char *title;
+        };
+
         virtual ~Window() = default;
 
         virtual uint32_t Width() const = 0;
@@ -40,5 +46,5 @@ namespace stapel
         virtual Backend GetBackendType() const = 0;
     };
 
-    std::shared_ptr<Window> GetWindow(const WindowSpecification& spec);
+    std::shared_ptr<Window> GetWindow(const Window::WindowSpecification& spec);
 }
