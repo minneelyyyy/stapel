@@ -23,6 +23,9 @@ namespace stapel::backend
 {
     X11Window::X11Window(const WindowSpecification& spec)
     {
+        width_ = spec.width;
+        height_ = spec.height;
+
         display_ = XOpenDisplay(NULL);
     
         if (!display_) {
@@ -33,11 +36,11 @@ namespace stapel::backend
             display_,
             XDefaultRootWindow(display_),
             0, 0,
-            spec.width, spec.height,
+            width_, height_,
             0,
             0x0, 0x0);
 
-        XStoreName(display_, window_, spec.title.c_str());
+        XStoreName(display_, window_, spec.title);
 
         XSelectInput(display_, window_, KeyPressMask | KeyReleaseMask);
         XMapWindow(display_, window_);

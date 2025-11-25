@@ -14,12 +14,14 @@
  */
 
 #include "VulkanRenderer.h"
+#include "Stapel/Stapel.h"
 
 #include <version.h>
 
 #include <vulkan/vulkan.h>
+#include <vulkan/vulkan_core.h>
 
-#ifdef LINUX_TARGET
+#ifdef TARGET_LINUX
 #   ifdef X11_ENABLED
 #       include <X11/Xlib.h>
 #   include <vulkan/vulkan_xlib.h>
@@ -27,18 +29,18 @@
 #   ifdef WAYLAND_ENABLED
 #       include <vulkan/vulkan_wayland.h>
 #   endif
-#else
+#elifdef TARGET_WINDOWS
 #   include <vulkan/vulkan_win32.h>
+#else
+#   error No valid target specified
 #endif
 
 #include <iostream>
-#include <fstream>
 #include <vector>
 #include <algorithm>
-#include <stdexcept>
-#include <optional>
-#include <limits>
 #include <ranges>
+#include <cstring>
+#include <cmath>
 
 namespace stapel::backend
 {
@@ -54,7 +56,8 @@ namespace stapel::backend
 
     std::vector<const char*> enabledValidationLayers()
     {
-        std::vector<const char*> layers(validationLayers.size());
+        std::vector<const char*> layers;
+        layers.reserve(validationLayers.size());
 
         if (!enableValidationLayers)
             return layers;
@@ -67,7 +70,7 @@ namespace stapel::backend
 
         for (const char* layer : validationLayers) {
             for (const auto prop : availableLayers) {
-                if (!strcmp(layer, prop.layerName)) {
+                if (!std::strcmp(layer, prop.layerName)) {
                     layers.push_back(layer);
                     break;
                 }
@@ -82,22 +85,27 @@ namespace stapel::backend
         std::vector<const char*> exts;
         exts.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
 
-#ifdef LINUX_TARGET
+#ifdef TARGET_LINUX
 #   ifdef X11_ENABLED
-        if (window->GetBackendType() == Window::X11) {
+        if (window.GetBackendType() == Window::X11) {
             exts.push_back(VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
         }
 #   endif
 #   ifdef WAYLAND_ENABLED
-        if (window->GetBackendType() == Window::Wayland) {
+        if (window.GetBackendType() == Window::Wayland) {
             exts.push_back(VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME);
         }
 #   endif
-#else
+#elifdef TARGET_WINDOWS
         if (window.GetBackendType() == Window::Windows) {
             exts.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
         }
+#else
+#   error No valid target specified
 #endif
+
+        if (exts.size() == 0)
+            STAPEL_FATAL("No surface extension");
 
         uint32_t count;
         vkEnumerateInstanceExtensionProperties(nullptr, &count, nullptr);
@@ -115,11 +123,16 @@ namespace stapel::backend
             .apiVersion = VK_API_VERSION_1_4,
         };
 
+        auto layers = enabledValidationLayers();
+
+        if (enableValidationLayers && layers.size() == 0)
+            std::cout << "WARNING: validation layers specified (implicit from debug build), but none selected" << std::endl;
+
         VkInstanceCreateInfo info {
             .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
             .pApplicationInfo = &appinfo,
-            .enabledLayerCount = static_cast<uint32_t>(validationLayers.size()),
-            .ppEnabledLayerNames = validationLayers.data(),
+            .enabledLayerCount = static_cast<uint32_t>(layers.size()),
+            .ppEnabledLayerNames = layers.data(),
             .enabledExtensionCount = static_cast<uint32_t>(exts.size()),
             .ppEnabledExtensionNames = exts.data(),
         };
@@ -341,7 +354,7 @@ namespace stapel::backend
 
         VkSwapchainKHR chain;
         if (vkCreateSwapchainKHR(device.device, &info, nullptr, &chain) != VK_SUCCESS)
-            throw std::exception("failure to create swapchain");
+            STAPEL_FATAL("Failed to create swapchain");
 
         uint32_t count;
         vkGetSwapchainImagesKHR(device.device, chain, &count, nullptr);
@@ -505,11 +518,10 @@ namespace stapel::backend
         vkBeginCommandBuffer(cmd, &cmd_buf_begin_info);
 
         TransitionImage(cmd, swapchain_.images[image_idx], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
-        std::cout << "TransitionImage END" << std::endl;
 
         VkClearColorValue clear;
         float flash = std::abs(std::sin(frame_idx_ / 120.f));
-        clear = { { 0.0f, 0.0f, flash, 1.0f } };\
+        clear = { { 0.0f, 0.0f, flash, 1.0f } };
 
         VkImageSubresourceRange range = {
             .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
@@ -533,19 +545,17 @@ namespace stapel::backend
         VkSemaphoreSubmitInfo wait_info = {
             .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
             .semaphore = GetFrame().swapchain_semaphore,
-            .value = 1,
             .stageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR,
         };
 
         VkSemaphoreSubmitInfo signal_info = {
             .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
             .semaphore = GetFrame().render_semaphore,
-            .value = 1,
             .stageMask = VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
         };
 
         VkSubmitInfo2 submit_info = {
-            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
             .waitSemaphoreInfoCount = 1,
             .pWaitSemaphoreInfos = &wait_info,
             .commandBufferInfoCount = 1,
@@ -566,8 +576,7 @@ namespace stapel::backend
             .pImageIndices = &image_idx,
         };
 
-        if (VK_SUCCESS != vkQueuePresentKHR(device_.queue, &present_info))
-            STAPEL_FATAL("failure to present");
+        VkResult res = vkQueuePresentKHR(device_.queue, &present_info);
 
         frame_idx_++;
     }
@@ -585,12 +594,18 @@ namespace stapel::backend
         uint32_t size;
         vkGetSwapchainImagesKHR(device_.device, swapchain_.chain, &size, nullptr);
 
-        for (auto& frame : frames_) {
+        frames_.reserve(size);
+
+        for (uint32_t i = 0; i < size; i++) {
+            FrameData frame;
+
             frame.pool = CreateCommandPool(device_.device, device_.index);
             frame.buffer = CreateCommandBuffer(device_.device, frame.pool);
             frame.render_fence = CreateFence(device_.device, true);
             frame.render_semaphore = CreateBinarySemaphore(device_.device);
             frame.swapchain_semaphore = CreateBinarySemaphore(device_.device);
+
+            frames_.push_back(frame);
         }
     }
 

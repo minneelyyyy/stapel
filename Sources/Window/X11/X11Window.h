@@ -27,6 +27,9 @@ namespace stapel::backend
         X11Window(const WindowSpecification& spec);
         ~X11Window() override;
 
+        uint32_t Width() const override { return width_; }
+        uint32_t Height() const override { return height_; }
+
 #ifdef VULKAN_ENABLED
         VkSurfaceKHR CreateVulkanSurface(VkInstance instance) override;
 #endif
@@ -36,5 +39,6 @@ namespace stapel::backend
     private:
         ::Display* display_;
         ::Window window_;
+        uint32_t width_, height_;
     };
 }

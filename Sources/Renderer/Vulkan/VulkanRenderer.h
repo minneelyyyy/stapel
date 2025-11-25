@@ -66,7 +66,7 @@ namespace stapel::backend
 
         void DestroySwapchain(VkDevice device);
 
-        FrameData& GetFrame() { return frames_[frame_idx_ % FRAME_OVERLAP]; };
+        FrameData& GetFrame() { return frames_[frame_idx_ % frames_.size()]; };
 
     private:
         std::shared_ptr<Window> window_;
@@ -76,7 +76,7 @@ namespace stapel::backend
 
         Swapchain swapchain_;
 
-        FrameData frames_[FRAME_OVERLAP];
+        std::vector<FrameData> frames_;
         unsigned int frame_idx_ = 0;
     };
 }

@@ -25,6 +25,8 @@ namespace stapel
     class Renderer
     {
     public:
+        virtual ~Renderer() = default;
+
         enum Backend { Vulkan };
         virtual Backend GetBackend() const = 0; 
 

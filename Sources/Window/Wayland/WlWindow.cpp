@@ -46,6 +46,9 @@ namespace stapel::backend
 {
     WaylandWindow::WaylandWindow(const WindowSpecification& spec)
     {
+        width_ = spec.width;
+        height_ = spec.height;
+
         display_ = wl_display_connect(nullptr);
 
         if (!display_)

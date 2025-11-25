@@ -51,27 +51,6 @@ target_sources(
 target_include_directories(StapelEngine PRIVATE ${SRC})
 add_subdirectory(${SRC})
 
-find_program(SLANGC_EXECUTABLE
-    NAMES slangc
-    PATHS
-        "$ENV{VULKAN_SDK}/Bin"
-    NO_DEFAULT_PATH
-)
-
-if(NOT SLANGC_EXECUTABLE)
-    message(FATAL_ERROR "slangc not found in Vulkan SDK!")
-endif()
-
-add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Shaders/shader.spv
-    COMMAND ${SLANGC_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/shader.slang -target spirv -profile spirv_1_4 -emit-spirv-directly -fvk-use-entrypoint-name -entry vertMain -entry fragMain -o ${CMAKE_CURRENT_BINARY_DIR}/Shaders/shader.spv
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/shaders/shader.slang
-    COMMENT "Compiling input_shader.slang with Slang"
-)
-
-add_custom_target(compile_shaders ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/Shaders/shader.spv)
-add_dependencies(StapelEngine compile_shaders)
-
 install(
     TARGETS StapelEngine
     EXPORT StapelEngineTargets

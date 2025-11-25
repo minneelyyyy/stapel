@@ -18,8 +18,6 @@
 
 #include <Window/Window.h>
 
-#include <stdexcept>
-
 namespace stapel
 {
     std::unique_ptr<Renderer> CreateBackend(std::shared_ptr<Window> window, Renderer::Backend api, const char *name, uint32_t version)

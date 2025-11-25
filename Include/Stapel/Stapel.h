@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
+[[noreturn]]
 inline void _stapel_fatal_impl(const char* format, ...) {
     char buffer[2048];
 

@@ -39,7 +39,6 @@ int stapel_engine_entry(int argc, char **argv)
     );
 
     for (;;) {
-        std::cout << "frame :D" << std::endl;
         renderer->DrawFrame();
     }
 

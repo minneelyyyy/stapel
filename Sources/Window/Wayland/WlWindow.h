@@ -31,6 +31,9 @@ namespace stapel::backend
         WaylandWindow(const WindowSpecification& spec);
         ~WaylandWindow() override;
 
+        uint32_t Width() const override { return width_; }
+        uint32_t Height() const override { return height_; }
+
 #ifdef VULKAN_ENABLED
         VkSurfaceKHR CreateVulkanSurface(VkInstance instance) override;
 #endif
@@ -39,5 +42,6 @@ namespace stapel::backend
     private:
         ::wl_display* display_;
         WaylandState state_;
+        uint32_t width_, height_;
     };
 }
