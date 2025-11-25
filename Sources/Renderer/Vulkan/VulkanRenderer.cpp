@@ -605,6 +605,7 @@ namespace stapel::backend
         for (auto view : swapchain_.image_views) {
             vkDestroyImageView(device, view, nullptr);
         }
+
         swapchain_.image_views.clear();
         swapchain_.images.clear();
     }
