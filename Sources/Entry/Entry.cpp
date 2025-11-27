@@ -17,7 +17,6 @@
 #include <Window/Window.h>
 #include <Renderer/Vulkan/VulkanRenderer.h>
 
-#include <iostream>
 #include <memory>
 
 extern "C" STAPEL_API
@@ -38,7 +37,8 @@ int stapel_engine_entry(int argc, char **argv)
         VK_MAKE_VERSION(0, 0, 1)
     );
 
-    for (;;) {
+    while (!window->ShouldClose()) {
+        window->Event();
         renderer->DrawFrame();
     }
 

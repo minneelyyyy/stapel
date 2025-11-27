@@ -17,21 +17,27 @@
 
 #include <Stapel/Stapel.h>
 #include <Renderer/Renderer.h>
+#include "Renderer/Vulkan/DeletionQueue.h"
+
+#include "Device.h"
+#include "Image.h"
 
 #include <vulkan/vulkan.h>
 
 #include <vector>
 #include <memory>
 
-namespace stapel::backend
+#include "vk_mem_alloc.h"
+
+namespace stapel::backend::vulkan
 {
-    class VulkanRenderer : public Renderer
+    class Renderer : public stapel::Renderer
     {
     public:
-        VulkanRenderer(std::shared_ptr<Window> window, const char *name, uint32_t version);
-        ~VulkanRenderer();
+        Renderer(std::shared_ptr<Window> window, const char *name, uint32_t version);
+        ~Renderer();
 
-        Backend GetBackend() const;
+        stapel::Renderer::Backend GetBackend() const;
 
         void DrawFrame();
 
@@ -41,28 +47,18 @@ namespace stapel::backend
             VkCommandBuffer buffer; 
             VkSemaphore swapchain_semaphore, render_semaphore;
             VkFence render_fence;
-        };
-
-        struct Device {
-            VkPhysicalDevice phys;
-            VkDevice device;
-            VkQueue queue;
-            uint32_t index;
+            DeletionQueue del;
         };
 
         struct Swapchain {
             VkSwapchainKHR chain;
-            VkExtent2D extent;
-            VkFormat format;
-            std::vector<VkImage> images;
-            std::vector<VkImageView> image_views;
+            std::vector<Image> images;
         };
 
         const static unsigned int FRAME_OVERLAP = 2;
 
     private:
-        static Swapchain CreateSwapchain(Window& window, VulkanRenderer::Device device, VkSurfaceKHR surface);
-        static Device CreateDevice(VkInstance instance, VkSurfaceKHR surface);
+        static Swapchain CreateSwapchain(Window& window, vulkan::Device& device, VkSurfaceKHR surface);
 
         void DestroySwapchain(VkDevice device);
 
@@ -72,11 +68,14 @@ namespace stapel::backend
         std::shared_ptr<Window> window_;
         VkInstance instance_;
         VkSurfaceKHR surface_;
-        Device device_;
+        std::unique_ptr<vulkan::Device> device_;
 
         Swapchain swapchain_;
 
         std::vector<FrameData> frames_;
         unsigned int frame_idx_ = 0;
+
+        DeletionQueue del_;
+        VmaAllocator alloc_;
     };
 }

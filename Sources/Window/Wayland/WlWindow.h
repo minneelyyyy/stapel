@@ -17,12 +17,26 @@
 
 #include <Window/Window.h>
 
+#include <wayland-client-protocol.h>
 #include <wayland-client.h>
+
+#include "xdg-shell-client-protocol.h"
+#include "xdg-decoration-unstable-v1-protocol.h"
 
 namespace stapel::backend
 {
     struct WaylandState {
-        ::wl_compositor* compositor;
+        ::wl_compositor* compositor = nullptr;
+        ::wl_surface* surface = nullptr;
+        ::xdg_wm_base* xdg_base = nullptr;
+        ::xdg_surface* xdg_surface = nullptr;
+        ::xdg_toplevel* xdg_toplevel = nullptr;
+        ::zxdg_decoration_manager_v1* zxdg_decoration_manager = nullptr;
+        ::zxdg_toplevel_decoration_v1* toplevel_decoration = nullptr;
+
+        bool should_close = false;
+        bool should_rebuild_swapchain = false;
+        uint32_t width, height;
     };
 
     class WaylandWindow : public Window
@@ -31,8 +45,11 @@ namespace stapel::backend
         WaylandWindow(const WindowSpecification& spec);
         ~WaylandWindow() override;
 
-        uint32_t Width() const override { return width_; }
-        uint32_t Height() const override { return height_; }
+        uint32_t Width() const override { return state_.width; }
+        uint32_t Height() const override { return state_.height; }
+
+        void Event() override;
+        bool ShouldClose() override { return state_.should_close; };
 
 #ifdef VULKAN_ENABLED
         VkSurfaceKHR CreateVulkanSurface(VkInstance instance) override;
@@ -42,6 +59,5 @@ namespace stapel::backend
     private:
         ::wl_display* display_;
         WaylandState state_;
-        uint32_t width_, height_;
     };
 }

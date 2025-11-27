@@ -25,7 +25,7 @@ namespace stapel
         switch (api) {
         case Renderer::Backend::Vulkan:
 #ifdef VULKAN_ENABLED
-            return std::make_unique<backend::VulkanRenderer>(window, name, version);
+            return std::make_unique<backend::vulkan::Renderer>(window, name, version);
 #else
             STAPEL_FATAL("Vulkan selected as backend but support is not built in to engine");
 #endif

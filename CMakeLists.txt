@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.25)
 project(
     Stapel
     VERSION 0.1.0
-    LANGUAGES CXX
+    LANGUAGES CXX C
 )
 
 set(CMAKE_CXX_STANDARD 23)
@@ -11,6 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
 
 set(SRC "${CMAKE_SOURCE_DIR}/Sources")
+set(INC "${CMAKE_SOURCE_DIR}/Include")
 set(BIN "${CMAKE_BINARY_DIR}")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")

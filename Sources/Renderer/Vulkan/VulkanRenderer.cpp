@@ -14,12 +14,17 @@
  */
 
 #include "VulkanRenderer.h"
-#include "Stapel/Stapel.h"
+#include "Renderer/Vulkan/Device.h"
 
+#include <memory>
 #include <version.h>
 
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
+
+// only define VMA_IMPLEMENTATION here.
+#define VMA_IMPLEMENTATION
+#include "vk_mem_alloc.h"
 
 #ifdef TARGET_LINUX
 #   ifdef X11_ENABLED
@@ -38,23 +43,22 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
-#include <ranges>
 #include <cstring>
 #include <cmath>
 
-namespace stapel::backend
+namespace stapel::backend::vulkan
 {
     const std::vector<const char*> validationLayers = {
         "VK_LAYER_KHRONOS_validation"
     };
 
-    #ifdef NDEBUG
-            bool enableValidationLayers = false;
-    #else
-            bool enableValidationLayers = true;
-    #endif
+#ifdef NDEBUG
+    bool enableValidationLayers = false;
+#else
+    bool enableValidationLayers = true;
+#endif
 
-    std::vector<const char*> enabledValidationLayers()
+    std::vector<const char*> EnabledValidationLayers()
     {
         std::vector<const char*> layers;
         layers.reserve(validationLayers.size());
@@ -123,7 +127,7 @@ namespace stapel::backend
             .apiVersion = VK_API_VERSION_1_4,
         };
 
-        auto layers = enabledValidationLayers();
+        auto layers = EnabledValidationLayers();
 
         if (enableValidationLayers && layers.size() == 0)
             std::cout << "WARNING: validation layers specified (implicit from debug build), but none selected" << std::endl;
@@ -143,126 +147,6 @@ namespace stapel::backend
 
         return instance;
     }
-
-    VkSurfaceKHR CreateSurface(Window& window, VkInstance instance)
-    {
-        return window.CreateVulkanSurface(instance);
-    }
-
-    uint32_t FindQueueFamilyIndex(VkPhysicalDevice device, VkSurfaceKHR surface, VkQueueFlagBits flags, bool present)
-    {
-        uint32_t queueFamilyCount = 0;
-        vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
-
-        std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-        vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
-
-        for (uint32_t i = 0; i < queueFamilyCount; i++) {
-            if (queueFamilies[i].queueFlags & flags) {
-                VkBool32 present;
-                vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &present);
-    
-                if (present)
-                    return i;
-            }
-        }
-
-        return INDEX_INVAL;
-    }
-
-    VulkanRenderer::Device VulkanRenderer::CreateDevice(VkInstance instance, VkSurfaceKHR surface)
-    {
-        uint32_t deviceCount = 0;
-        vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
-
-        if (deviceCount == 0)
-            STAPEL_FATAL("No Vulkan supported devices found!");
-
-        std::vector<VkPhysicalDevice> devices(deviceCount);
-        vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
-
-        // filter for valid candidates, i.e. candidates which have a surface present enabled & graphics enabled queue family
-        auto candidates = devices
-        | std::views::transform([&](VkPhysicalDevice phys) {
-            return std::pair(phys, FindQueueFamilyIndex(phys, surface, VK_QUEUE_GRAPHICS_BIT, true));
-        })
-        | std::views::filter([](const auto& tup) {
-            const auto& [_phys, idx] = tup;
-            return idx != INDEX_INVAL;
-        });
-
-        // grab first candidate
-        auto it = std::begin(candidates);
-        if (it == std::end(candidates)) {
-            STAPEL_FATAL("No valid Vulkan supported devices found!");
-        }
-
-        auto [phys, index] = *it;
-
-        VkPhysicalDeviceExtendedDynamicStateFeaturesEXT phys_feat_dyn_state_ext = {
-            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT,
-            .extendedDynamicState = VK_TRUE,
-        };
-
-        VkPhysicalDeviceVulkan13Features phys_feat_vk13 = {
-            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
-            .pNext = &phys_feat_dyn_state_ext,
-            .synchronization2 = VK_TRUE,
-            .dynamicRendering = VK_TRUE,
-        };
-
-        VkPhysicalDeviceVulkan12Features phys_feat_vk12 = {
-            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
-            .pNext = &phys_feat_vk13,
-            .descriptorIndexing = VK_TRUE,
-            .bufferDeviceAddress = VK_TRUE,
-        };
-
-        VkPhysicalDeviceFeatures2 phys_feat_2 = {
-            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
-            .pNext = &phys_feat_vk12,
-        };
-
-        std::vector<const char*> extensions {
-            VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-            VK_KHR_SPIRV_1_4_EXTENSION_NAME,
-            VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME,
-            VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME,
-            VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME,
-        };
-
-        float priority = 1.0f;
-
-        VkDeviceQueueCreateInfo queue_create_info = {
-            .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-            .queueFamilyIndex = index,
-            .queueCount = 1,
-            .pQueuePriorities = &priority,
-        };
-
-        VkDeviceCreateInfo createInfo  = {
-            .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-            .pNext = &phys_feat_2,
-            .queueCreateInfoCount = 1,
-            .pQueueCreateInfos = &queue_create_info,
-            .enabledExtensionCount = static_cast<uint32_t>(extensions.size()),
-            .ppEnabledExtensionNames = extensions.data(),
-        };
-
-        VkDevice device;
-        if (vkCreateDevice(phys, &createInfo, nullptr, &device) != VK_SUCCESS)
-            STAPEL_FATAL("failed to create logical device!");
-
-        VkQueue queue;
-        vkGetDeviceQueue(device, index, 0, &queue);
-
-        return Device {
-            .phys = phys,
-            .device = device,
-            .queue = queue,
-            .index = index,
-        };
-    }
  
     VkSurfaceFormatKHR SelectBestSurfaceFormat(VkSurfaceKHR surface, VkPhysicalDevice device)
     {
@@ -281,22 +165,27 @@ namespace stapel::backend
         return formats[0];
     }
 
-    VkPresentModeKHR SelectBestPresentMode(VkPhysicalDevice device)
+    std::optional<VkPresentModeKHR> SelectBestPresentMode(VkPhysicalDevice device, VkSurfaceKHR surface, std::span<VkPresentModeKHR> preferred_modes)
     {
-#if 0
         uint32_t count = 0;
-        vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface_, &count, nullptr);
+        vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &count, nullptr);
+
+        // no modes available, hopefully this does not happen.
+        if (count == 0)
+            return {};
 
         std::vector<VkPresentModeKHR> modes(count);
-        vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface_, &count, modes.data());
+        vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &count, modes.data());
 
-        for (const VkPresentModeKHR mode : modes) {
-            if (mode == VK_PRESENT_MODE_MAILBOX_KHR)
-                return mode;
+        for (auto preferred_mode : preferred_modes) {
+            for (auto mode : modes) {
+                if (mode == preferred_mode)
+                    return mode;
+            }
         }
-#endif
 
-        return VK_PRESENT_MODE_FIFO_KHR;
+        // no preferred mode found, use the first one available
+        return modes.front();
     }
 
     VkExtent2D SelectBestExtent(Window& window, VkSurfaceCapabilitiesKHR capabilities)
@@ -315,13 +204,20 @@ namespace stapel::backend
         return extent;
     }
 
-    VulkanRenderer::Swapchain VulkanRenderer::CreateSwapchain(Window& window, VulkanRenderer::Device device, VkSurfaceKHR surface)
+    Renderer::Swapchain Renderer::CreateSwapchain(Window& window, vulkan::Device& device, VkSurfaceKHR surface)
     {        
-        auto surface_format = SelectBestSurfaceFormat(surface, device.phys);
-        auto present_mode = SelectBestPresentMode(device.phys);
+        VkSurfaceFormatKHR surface_format = SelectBestSurfaceFormat(surface, device.GetPhys());
+
+        VkPresentModeKHR mode_pref[] = {
+            VK_PRESENT_MODE_FIFO_KHR,
+            VK_PRESENT_MODE_MAILBOX_KHR,
+            VK_PRESENT_MODE_IMMEDIATE_KHR,
+        };
+
+        VkPresentModeKHR present_mode = SelectBestPresentMode(device.GetPhys(), surface, mode_pref).value();
 
         VkSurfaceCapabilitiesKHR capabilities;
-        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device.phys, surface, &capabilities);
+        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device.GetPhys(), surface, &capabilities);
         VkExtent2D extent = SelectBestExtent(window, capabilities);
 
         uint32_t min_img_count = std::max<>(3u, capabilities.minImageCount);
@@ -331,6 +227,8 @@ namespace stapel::backend
         }
 
         VkFormat format = surface_format.format;
+
+        uint32_t index = device.GetFamilyIndex();
 
         VkSwapchainCreateInfoKHR info = {
             .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
@@ -344,7 +242,7 @@ namespace stapel::backend
             .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
             .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE,
             .queueFamilyIndexCount = 1,
-            .pQueueFamilyIndices = &device.index,
+            .pQueueFamilyIndices = &index,
             .preTransform = capabilities.currentTransform,
             .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
             .presentMode = present_mode,
@@ -353,57 +251,26 @@ namespace stapel::backend
         };
 
         VkSwapchainKHR chain;
-        if (vkCreateSwapchainKHR(device.device, &info, nullptr, &chain) != VK_SUCCESS)
+        if (vkCreateSwapchainKHR(device.GetDevice(), &info, nullptr, &chain) != VK_SUCCESS)
             STAPEL_FATAL("Failed to create swapchain");
 
         uint32_t count;
-        vkGetSwapchainImagesKHR(device.device, chain, &count, nullptr);
+        vkGetSwapchainImagesKHR(device.GetDevice(), chain, &count, nullptr);
 
-        std::vector<VkImage> images(count);
-        vkGetSwapchainImagesKHR(device.device, chain, &count, images.data());
+        std::vector<VkImage> vkImages(count);
+        vkGetSwapchainImagesKHR(device.GetDevice(), chain, &count, vkImages.data());
 
-        std::vector<VkImageView> image_views;
-        image_views.reserve(count);
+        std::vector<Image> images;
+        images.reserve(count);
 
-        for (VkImage image : images) {
-            VkImageViewUsageCreateInfo flags = {
-                .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_USAGE_CREATE_INFO,
-                .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
-            };
-
-            VkImageViewCreateInfo info = {
-                .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-                .pNext = &flags,
-                .image = image,
-                .viewType = VK_IMAGE_VIEW_TYPE_2D,
-                .format = format,
-                .components = {
-                    .r = VK_COMPONENT_SWIZZLE_IDENTITY,
-                    .g = VK_COMPONENT_SWIZZLE_IDENTITY,
-                    .b = VK_COMPONENT_SWIZZLE_IDENTITY,
-                    .a = VK_COMPONENT_SWIZZLE_IDENTITY,
-                },
-                .subresourceRange = {
-                    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                    .baseMipLevel = 0,
-                    .levelCount = 1,
-                    .baseArrayLayer = 0,
-                    .layerCount = 1,
-                },
-            };
-
-            VkImageView view;
-            vkCreateImageView(device.device, &info, nullptr, &view);
-
-            image_views.push_back(view);
+        for (VkImage image : vkImages) {
+            Image img = Image::Wrap(device.GetDevice(), extent.width, extent.height, 1, format, image, VK_IMAGE_LAYOUT_UNDEFINED);
+            images.push_back(std::move(img));
         }
 
         return Swapchain {
             .chain = chain,
-            .extent = extent,
-            .format = format,
-            .images = images,
-            .image_views = image_views,
+            .images = std::move(images),
         };
     }
 
@@ -467,47 +334,21 @@ namespace stapel::backend
         return fence;
     }
 
-    void TransitionImage(VkCommandBuffer cmd, VkImage image, VkImageLayout current, VkImageLayout next)
+    void Renderer::DrawFrame()
     {
-        VkImageAspectFlags aspectMask = (next == VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL)
-            ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
+        FrameData& frame = GetFrame();
 
-        VkImageMemoryBarrier2 image_barrier = {
-            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
-            .srcStageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT,
-            .srcAccessMask = VK_ACCESS_2_MEMORY_WRITE_BIT,
-            .dstStageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT,
-            .dstAccessMask = VK_ACCESS_2_MEMORY_WRITE_BIT | VK_ACCESS_2_MEMORY_READ_BIT,
-            .oldLayout = current,
-            .newLayout = next,
-            .image = image,
-            .subresourceRange = VkImageSubresourceRange {
-                .aspectMask = aspectMask,
-                .baseMipLevel = 0,
-                .levelCount = VK_REMAINING_MIP_LEVELS,
-                .baseArrayLayer = 0,
-                .layerCount = VK_REMAINING_ARRAY_LAYERS,
-            },
-        };
+        vkWaitForFences(device_->GetDevice(), 1, &frame.render_fence, true, UINT64_MAX);
+        vkResetFences(device_->GetDevice(), 1, &frame.render_fence);
 
-        VkDependencyInfo dependency_info = {
-            .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
-            .imageMemoryBarrierCount = 1,
-            .pImageMemoryBarriers = &image_barrier,
-        };
-
-        vkCmdPipelineBarrier2(cmd, &dependency_info);
-    }
-
-    void VulkanRenderer::DrawFrame()
-    {
-        vkWaitForFences(device_.device, 1, &GetFrame().render_fence, true, UINT64_MAX);
-        vkResetFences(device_.device, 1, &GetFrame().render_fence);
+        frame.del.DeleteAll();
 
         uint32_t image_idx;
-        vkAcquireNextImageKHR(device_.device, swapchain_.chain, UINT64_MAX, GetFrame().swapchain_semaphore, nullptr, &image_idx);
+        vkAcquireNextImageKHR(device_->GetDevice(), swapchain_.chain, UINT64_MAX, frame.swapchain_semaphore, nullptr, &image_idx);
 
-        VkCommandBuffer cmd = GetFrame().buffer;
+        Image& img = swapchain_.images[image_idx];
+
+        VkCommandBuffer cmd = frame.buffer;
         vkResetCommandBuffer(cmd, 0);
 
         VkCommandBufferBeginInfo cmd_buf_begin_info = {
@@ -517,7 +358,7 @@ namespace stapel::backend
 
         vkBeginCommandBuffer(cmd, &cmd_buf_begin_info);
 
-        TransitionImage(cmd, swapchain_.images[image_idx], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
+        img.Transition(cmd, VK_IMAGE_LAYOUT_GENERAL);
 
         VkClearColorValue clear;
         float flash = std::abs(std::sin(frame_idx_ / 120.f));
@@ -531,9 +372,9 @@ namespace stapel::backend
             .layerCount = VK_REMAINING_ARRAY_LAYERS,
         };
 
-        vkCmdClearColorImage(cmd, swapchain_.images[image_idx], VK_IMAGE_LAYOUT_GENERAL, &clear, 1, &range);
+        vkCmdClearColorImage(cmd, swapchain_.images[image_idx].GetImage(), VK_IMAGE_LAYOUT_GENERAL, &clear, 1, &range);
 
-        TransitionImage(cmd, swapchain_.images[image_idx], VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+        img.Transition(cmd, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
         vkEndCommandBuffer(cmd);
 
@@ -544,13 +385,13 @@ namespace stapel::backend
 
         VkSemaphoreSubmitInfo wait_info = {
             .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
-            .semaphore = GetFrame().swapchain_semaphore,
+            .semaphore = frame.swapchain_semaphore,
             .stageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR,
         };
 
         VkSemaphoreSubmitInfo signal_info = {
             .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
-            .semaphore = GetFrame().render_semaphore,
+            .semaphore = frame.render_semaphore,
             .stageMask = VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
         };
 
@@ -564,83 +405,108 @@ namespace stapel::backend
             .pSignalSemaphoreInfos = &signal_info,
         };
 
-        if (VK_SUCCESS != vkQueueSubmit2(device_.queue, 1, &submit_info, GetFrame().render_fence))
+        if (VK_SUCCESS != vkQueueSubmit2(device_->GetQueue(), 1, &submit_info, frame.render_fence))
             STAPEL_FATAL("failure to submit command queue");
 
         VkPresentInfoKHR present_info = {
             .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
             .waitSemaphoreCount = 1,
-            .pWaitSemaphores = &GetFrame().render_semaphore,
+            .pWaitSemaphores = &frame.render_semaphore,
             .swapchainCount = 1,
             .pSwapchains = &swapchain_.chain,
             .pImageIndices = &image_idx,
         };
 
-        VkResult res = vkQueuePresentKHR(device_.queue, &present_info);
+        VkResult res = vkQueuePresentKHR(device_->GetQueue(), &present_info);
 
         frame_idx_++;
     }
 
-    VulkanRenderer::VulkanRenderer(std::shared_ptr<Window> window, const char *name, uint32_t version)
+    Renderer::Renderer(std::shared_ptr<Window> window, const char *name, uint32_t version)
         : window_(window)
     {
         instance_ = CreateInstance(*window, name, version);
-        surface_ = CreateSurface(*window, instance_);
+        surface_ = window->CreateVulkanSurface(instance_);
 
-        device_ = CreateDevice(instance_, surface_);
+        auto devs = vulkan::DeviceBuilder(instance_, surface_)
+            .ext(VK_KHR_SWAPCHAIN_EXTENSION_NAME)
+            .ext(VK_KHR_SPIRV_1_4_EXTENSION_NAME)
+            .extendedDynamicState(true)
+            .synchronization2(true)
+            .dynamicRendering(true)
+            .descriptorIndexing(true)
+            .bufferDeviceAddress(true)
+            .Devices();
 
-        swapchain_ = CreateSwapchain(*window, device_, surface_);
+        if (devs.size() == 0)
+            STAPEL_FATAL("No valid device found!");
+
+        device_ = std::make_unique<vulkan::Device>(instance_, surface_, devs[0]);
+
+        swapchain_ = CreateSwapchain(*window, *device_, surface_);
 
         uint32_t size;
-        vkGetSwapchainImagesKHR(device_.device, swapchain_.chain, &size, nullptr);
+        vkGetSwapchainImagesKHR(device_->GetDevice(), swapchain_.chain, &size, nullptr);
 
         frames_.reserve(size);
 
         for (uint32_t i = 0; i < size; i++) {
             FrameData frame;
 
-            frame.pool = CreateCommandPool(device_.device, device_.index);
-            frame.buffer = CreateCommandBuffer(device_.device, frame.pool);
-            frame.render_fence = CreateFence(device_.device, true);
-            frame.render_semaphore = CreateBinarySemaphore(device_.device);
-            frame.swapchain_semaphore = CreateBinarySemaphore(device_.device);
+            frame.pool = CreateCommandPool(device_->GetDevice(), device_->GetFamilyIndex());
+            frame.buffer = CreateCommandBuffer(device_->GetDevice(), frame.pool);
+            frame.render_fence = CreateFence(device_->GetDevice(), true);
+            frame.render_semaphore = CreateBinarySemaphore(device_->GetDevice());
+            frame.swapchain_semaphore = CreateBinarySemaphore(device_->GetDevice());
 
             frames_.push_back(frame);
         }
+
+        VmaAllocatorCreateInfo allocatorInfo = {
+            .flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT,
+            .physicalDevice = device_->GetPhys(),
+            .device = device_->GetDevice(),
+            .instance = instance_,
+        };
+
+        vmaCreateAllocator(&allocatorInfo, &alloc_);
+
+        del_.Push([&]() {
+            vmaDestroyAllocator(alloc_);
+        });
     }
 
-    Renderer::Backend VulkanRenderer::GetBackend() const {
-        return Backend::Vulkan;
+    stapel::Renderer::Backend Renderer::GetBackend() const {
+        return stapel::Renderer::Backend::Vulkan;
     }
 
-    void VulkanRenderer::DestroySwapchain(VkDevice device)
+    void Renderer::DestroySwapchain(VkDevice device)
     {
         vkDestroySwapchainKHR(device, swapchain_.chain, nullptr);
-
-        for (auto view : swapchain_.image_views) {
-            vkDestroyImageView(device, view, nullptr);
-        }
-
-        swapchain_.image_views.clear();
         swapchain_.images.clear();
     }
 
-    VulkanRenderer::~VulkanRenderer()
+    Renderer::~Renderer()
     {
-        vkDeviceWaitIdle(device_.device);
+        vkDeviceWaitIdle(device_->GetDevice());
 
         for (auto& frame : frames_) {
-            vkDestroyCommandPool(device_.device, frame.pool, nullptr);
+            vkDestroyCommandPool(device_->GetDevice(), frame.pool, nullptr);
 
-            vkDestroyFence(device_.device, frame.render_fence, nullptr);
-            vkDestroySemaphore(device_.device, frame.render_semaphore, nullptr);
-            vkDestroySemaphore(device_.device, frame.swapchain_semaphore, nullptr);
+            vkDestroyFence(device_->GetDevice(), frame.render_fence, nullptr);
+            vkDestroySemaphore(device_->GetDevice(), frame.render_semaphore, nullptr);
+            vkDestroySemaphore(device_->GetDevice(), frame.swapchain_semaphore, nullptr);
+
+            frame.del.DeleteAll();
         }
 
-        DestroySwapchain(device_.device);
+        del_.DeleteAll();
+
+        DestroySwapchain(device_->GetDevice());
+
+        device_.reset();
 
         vkDestroySurfaceKHR(instance_, surface_, nullptr);
-        vkDestroyDevice(device_.device, nullptr);
         vkDestroyInstance(instance_, nullptr);
     }
 }

@@ -39,6 +39,9 @@ namespace stapel
         virtual uint32_t Width() const = 0;
         virtual uint32_t Height() const = 0;
 
+        virtual void Event() {};
+        virtual bool ShouldClose() { return false; };
+
 #ifdef VULKAN_ENABLED
         virtual VkSurfaceKHR CreateVulkanSurface(VkInstance instance) = 0;
 #endif

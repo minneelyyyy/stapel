@@ -33,7 +33,9 @@ namespace stapel::backend
         ~Win32Window() override;
 
         uint32_t Width() const override;
-        uint32_t Height() const override;
+        uint32_t Height() const override; 
+
+        void Event() override;
 
 #ifdef VULKAN_ENABLED
         VkSurfaceKHR CreateVulkanSurface(VkInstance instance) override;
