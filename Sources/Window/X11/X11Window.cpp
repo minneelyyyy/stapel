@@ -23,49 +23,43 @@
 
 namespace stapel::backend
 {
-    X11Window::X11Window(const WindowSpecification& spec)
-    {
-        width_ = spec.width;
-        height_ = spec.height;
+X11Window::X11Window(const WindowSpecification& spec)
+{
+    width_ = spec.width;
+    height_ = spec.height;
 
-        display_ = XOpenDisplay(NULL);
-    
-        if (!display_) {
-            throw std::runtime_error("failed to open X display.");
-        }
+    display_ = XOpenDisplay(NULL);
 
-        window_ = XCreateSimpleWindow(
-            display_,
-            XDefaultRootWindow(display_),
-            0, 0,
-            width_, height_,
-            0,
-            0x0, 0x0);
-
-        XStoreName(display_, window_, spec.title);
-
-        XSelectInput(display_, window_, KeyPressMask | KeyReleaseMask);
-        XMapWindow(display_, window_);
+    if (!display_) {
+        throw std::runtime_error("failed to open X display.");
     }
 
-    X11Window::~X11Window()
-    {
-        XCloseDisplay(display_);
-    }
+    window_ = XCreateSimpleWindow(display_, XDefaultRootWindow(display_), 0, 0, width_, height_, 0, 0x0, 0x0);
+
+    XStoreName(display_, window_, spec.title);
+
+    XSelectInput(display_, window_, KeyPressMask | KeyReleaseMask);
+    XMapWindow(display_, window_);
+}
+
+X11Window::~X11Window()
+{
+    XCloseDisplay(display_);
+}
 
 #ifdef USE_VULKAN
-    VkSurfaceKHR X11Window::CreateVulkanSurface(VkInstance instance)
-    {
-        VkXlibSurfaceCreateInfoKHR info {};
-        info.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
-        info.dpy = display_;
-        info.window = window_;
+VkSurfaceKHR X11Window::CreateVulkanSurface(VkInstance instance)
+{
+    VkXlibSurfaceCreateInfoKHR info{};
+    info.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
+    info.dpy = display_;
+    info.window = window_;
 
-        VkSurfaceKHR surface;
-        if (vkCreateXlibSurfaceKHR(instance, &info, nullptr, &surface) != VK_SUCCESS)
-            return nullptr;
+    VkSurfaceKHR surface;
+    if (vkCreateXlibSurfaceKHR(instance, &info, nullptr, &surface) != VK_SUCCESS)
+        return nullptr;
 
-        return surface;
-    }
-#endif
+    return surface;
 }
+#endif
+} // namespace stapel::backend

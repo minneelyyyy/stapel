@@ -11,19 +11,18 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
-**/
+ **/
 
 #include "Window.h"
 
-#ifdef TARGET_LINUX
-#   ifdef USE_X11
-#       include "X11/X11Window.h"
-#   endif
-#   ifdef USE_WAYLAND
-#       include "Wayland/WlWindow.h"
-#   endif
-#elif TARGET_WINDOWS
-#   include "Windows/WinWindow.h"
+#ifdef USE_X11
+#include "X11/X11Window.h"
+#endif
+#ifdef USE_WAYLAND
+#include "Wayland/WlWindow.h"
+#endif
+#ifdef USE_WIN32
+#include "Windows/WinWindow.h"
 #endif
 
 #include <memory>
@@ -31,23 +30,23 @@
 
 namespace stapel
 {
-    std::shared_ptr<Window> GetWindow(const Window::WindowSpecification& spec)
-    {
+std::shared_ptr<Window> GetWindow(const Window::WindowSpecification& spec)
+{
 #ifdef TARGET_LINUX
-#   if defined(USE_X11) && defined(USE_WAYLAND)
-        if (getenv("WAYLAND_DISPLAY")) {
-            return std::make_unique<backend::WaylandWindow>(spec);
-        } else if (getenv("DISPLAY")) {
-            return std::make_unique<backend::X11Window>(spec);
-        }
-#   elif defined(USE_X11)
-        return std::make_unique<backend::X11Window>(spec);
-#   elif defined(USE_WAYLAND)
+#if defined(USE_X11) && defined(USE_WAYLAND)
+    if (getenv("WAYLAND_DISPLAY")) {
         return std::make_unique<backend::WaylandWindow>(spec);
-#   endif
-#elif TARGET_WINDOWS
-        return std::make_unique<backend::Win32Window>(spec);
-#endif
-        throw std::runtime_error("failed to create window. Are you running in a graphical environment?");
+    } else if (getenv("DISPLAY")) {
+        return std::make_unique<backend::X11Window>(spec);
     }
+#elif defined(USE_X11)
+    return std::make_unique<backend::X11Window>(spec);
+#elif defined(USE_WAYLAND)
+    return std::make_unique<backend::WaylandWindow>(spec);
+#endif
+#elif TARGET_WINDOWS
+    return std::make_unique<backend::Win32Window>(spec);
+#endif
+    throw std::runtime_error("failed to create window. Are you running in a graphical environment?");
 }
+} // namespace stapel

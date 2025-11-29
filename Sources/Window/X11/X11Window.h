@@ -21,24 +21,24 @@
 
 namespace stapel::backend
 {
-    class X11Window : public Window
-    {
-    public:
-        X11Window(const WindowSpecification& spec);
-        ~X11Window() override;
+class X11Window : public Window
+{
+  public:
+    X11Window(const WindowSpecification& spec);
+    ~X11Window() override;
 
-        uint32_t Width() const override { return width_; }
-        uint32_t Height() const override { return height_; }
+    uint32_t Width() const override { return width_; }
+    uint32_t Height() const override { return height_; }
 
 #ifdef USE_VULKAN
-        VkSurfaceKHR CreateVulkanSurface(VkInstance instance) override;
+    VkSurfaceKHR CreateVulkanSurface(VkInstance instance) override;
 #endif
 
-        Window::Backend GetBackendType() const override { return Window::X11; }
+    Window::Backend GetBackendType() const override { return Window::X11; }
 
-    private:
-        ::Display* display_;
-        ::Window window_;
-        uint32_t width_, height_;
-    };
-}
+  private:
+    ::Display* display_;
+    ::Window window_;
+    uint32_t width_, height_;
+};
+} // namespace stapel::backend

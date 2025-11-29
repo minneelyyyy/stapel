@@ -25,28 +25,29 @@
 
 namespace stapel
 {
-    class Window
-    {
-    public:
-        struct WindowSpecification {
-            int width, height;
-            const char *title;
-        };
-
-        virtual ~Window() = default;
-
-        virtual uint32_t Width() const = 0;
-        virtual uint32_t Height() const = 0;
-
-        virtual void Event() {};
-        virtual bool ShouldClose() { return false; };
-
-#ifdef USE_VULKAN
-        virtual VkSurfaceKHR CreateVulkanSurface(VkInstance instance) = 0;
-#endif
-        enum Backend { Wayland, X11, Windows };
-        virtual Backend GetBackendType() const = 0;
+class Window
+{
+  public:
+    struct WindowSpecification {
+        int width, height;
+        const char* title;
     };
 
-    std::shared_ptr<Window> GetWindow(const Window::WindowSpecification& spec);
-}
+    virtual ~Window() = default;
+
+    virtual uint32_t Width() const = 0;
+    virtual uint32_t Height() const = 0;
+
+    virtual void Event() {};
+    virtual bool ShouldClose() { return false; };
+
+#ifdef USE_VULKAN
+    virtual VkSurfaceKHR CreateVulkanSurface(VkInstance instance) = 0;
+#endif
+    enum Backend { Wayland, X11, Windows };
+
+    virtual Backend GetBackendType() const = 0;
+};
+
+std::shared_ptr<Window> GetWindow(const Window::WindowSpecification& spec);
+} // namespace stapel

@@ -20,44 +20,44 @@
 #include <wayland-client-protocol.h>
 #include <wayland-client.h>
 
-#include "xdg-shell-client-protocol.h"
 #include "xdg-decoration-unstable-v1-protocol.h"
+#include "xdg-shell-client-protocol.h"
 
 namespace stapel::backend
 {
-    struct WaylandState {
-        ::wl_compositor* compositor = nullptr;
-        ::wl_surface* surface = nullptr;
-        ::xdg_wm_base* xdg_base = nullptr;
-        ::xdg_surface* xdg_surface = nullptr;
-        ::xdg_toplevel* xdg_toplevel = nullptr;
-        ::zxdg_decoration_manager_v1* zxdg_decoration_manager = nullptr;
-        ::zxdg_toplevel_decoration_v1* toplevel_decoration = nullptr;
+struct WaylandState {
+    ::wl_compositor* compositor = nullptr;
+    ::wl_surface* surface = nullptr;
+    ::xdg_wm_base* xdg_base = nullptr;
+    ::xdg_surface* xdg_surface = nullptr;
+    ::xdg_toplevel* xdg_toplevel = nullptr;
+    ::zxdg_decoration_manager_v1* zxdg_decoration_manager = nullptr;
+    ::zxdg_toplevel_decoration_v1* toplevel_decoration = nullptr;
 
-        bool should_close = false;
-        bool should_rebuild_swapchain = false;
-        uint32_t width, height;
-    }; 
+    bool should_close = false;
+    bool should_rebuild_swapchain = false;
+    uint32_t width, height;
+};
 
-    class WaylandWindow : public Window
-    {
-    public:
-        WaylandWindow(const WindowSpecification& spec);
-        ~WaylandWindow() override;
+class WaylandWindow : public Window
+{
+  public:
+    WaylandWindow(const WindowSpecification& spec);
+    ~WaylandWindow() override;
 
-        uint32_t Width() const override { return state_.width; }
-        uint32_t Height() const override { return state_.height; }
+    uint32_t Width() const override { return state_.width; }
+    uint32_t Height() const override { return state_.height; }
 
-        void Event() override;
-        bool ShouldClose() override { return state_.should_close; };
+    void Event() override;
+    bool ShouldClose() override { return state_.should_close; };
 
 #ifdef USE_VULKAN
-        VkSurfaceKHR CreateVulkanSurface(VkInstance instance) override;
+    VkSurfaceKHR CreateVulkanSurface(VkInstance instance) override;
 #endif
-        Window::Backend GetBackendType() const override { return Window::Wayland; }
+    Window::Backend GetBackendType() const override { return Window::Wayland; }
 
-    private:
-        ::wl_display* display_;
-        WaylandState state_;
-    };
-}
+  private:
+    ::wl_display* display_;
+    WaylandState state_;
+};
+} // namespace stapel::backend

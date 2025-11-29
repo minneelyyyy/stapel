@@ -17,26 +17,25 @@
 
 namespace stapel::backend
 {
-    DeletionQueue::DeletionQueue()
-    {
+DeletionQueue::DeletionQueue()
+{}
+
+DeletionQueue::~DeletionQueue()
+{
+    DeleteAll();
+}
+
+void DeletionQueue::Push(std::function<void()>&& f)
+{
+    fns_.push_back(f);
+}
+
+void DeletionQueue::DeleteAll()
+{
+    for (auto it = fns_.rbegin(); it != fns_.rend(); it++) {
+        (*it)();
     }
 
-    DeletionQueue::~DeletionQueue()
-    {
-        DeleteAll();
-    }
-
-    void DeletionQueue::Push(std::function<void()>&& f)
-    {
-        fns_.push_back(f);
-    }
-
-    void DeletionQueue::DeleteAll()
-    {
-        for (auto it = fns_.rbegin(); it != fns_.rend(); it++) {
-            (*it)();
-        }
-
-        fns_.clear();
-    }
-};
+    fns_.clear();
+}
+}; // namespace stapel::backend

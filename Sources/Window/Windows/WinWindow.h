@@ -26,24 +26,25 @@
 
 namespace stapel::backend
 {
-    class Win32Window : public Window
-    {
-    public:
-        Win32Window(const WindowSpecification& spec);
-        ~Win32Window() override;
+class Win32Window : public Window
+{
+  public:
+    Win32Window(const WindowSpecification& spec);
+    ~Win32Window() override;
 
-        uint32_t Width() const override;
-        uint32_t Height() const override; 
+    uint32_t Width() const override;
+    uint32_t Height() const override;
 
-        void Event() override;
+    void Event() override;
 
 #ifdef USE_VULKAN
-        VkSurfaceKHR CreateVulkanSurface(VkInstance instance) override;
+    VkSurfaceKHR CreateVulkanSurface(VkInstance instance) override;
 #endif
 
-        Window::Backend GetBackendType() const override { return Window::Windows; }
-    private:
-        HINSTANCE instance_;
-        HWND hwnd_;
-    };
-}
+    Window::Backend GetBackendType() const override { return Window::Windows; }
+
+  private:
+    HINSTANCE instance_;
+    HWND hwnd_;
+};
+} // namespace stapel::backend

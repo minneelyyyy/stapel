@@ -22,23 +22,18 @@
 
 #include <memory>
 
-extern "C" STAPEL_API
-int stapel_engine_entry(int argc, char **argv)
+extern "C" STAPEL_API int stapel_engine_entry(int argc, char** argv)
 {
     stapel::Window::WindowSpecification spec = {
         .width = 800,
         .height = 600,
         .title = "Stapel Game",
     };
-    
+
     auto window = stapel::GetWindow(spec);
 
-    auto renderer = stapel::CreateBackend(
-        window,
-        stapel::Renderer::Backend::Vulkan,
-        "Stapel Game",
-        VK_MAKE_VERSION(0, 0, 1)
-    );
+    auto renderer =
+        stapel::CreateBackend(window, stapel::Renderer::Backend::Vulkan, "Stapel Game", VK_MAKE_VERSION(0, 0, 1));
 
     while (!window->ShouldClose()) {
         window->Event();

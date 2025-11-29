@@ -16,28 +16,20 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
-#include <iostream>
 #include <Stapel/Stapel.h>
+#include <iostream>
 
 #define STAPEL_LIBRARY_DLL "bin\\StapelEngine.dll"
 #define STAPEL_ENTRY_SYMBOL "stapel_engine_entry"
 
-static void AlertLastError(const char *message)
+static void AlertLastError(const char* message)
 {
-	LPVOID lpMsgBuf;
+    LPVOID lpMsgBuf;
     char msgBuf[2048] = "";
-	DWORD dw = GetLastError();
+    DWORD dw = GetLastError();
 
-    if (FormatMessage(
-        FORMAT_MESSAGE_ALLOCATE_BUFFER |
-        FORMAT_MESSAGE_FROM_SYSTEM |
-        FORMAT_MESSAGE_IGNORE_INSERTS,
-        NULL,
-        dw,
-        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-        (LPTSTR) &lpMsgBuf,
-        0, NULL) == 0)
-    {
+    if (FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL,
+                      dw, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, NULL) == 0) {
         MessageBox(NULL, TEXT("FormatMessage failed"), TEXT("Error"), MB_OK);
         ExitProcess(dw);
     }
@@ -50,18 +42,16 @@ static void AlertLastError(const char *message)
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nCmdShow)
 {
-	HMODULE mod = LoadLibraryExA(STAPEL_LIBRARY_DLL, nullptr, 0x0);
-	if (!mod)
-	{
-		AlertLastError("Failed to load " STAPEL_LIBRARY_DLL);
-		return -1;
-	}
+    HMODULE mod = LoadLibraryExA(STAPEL_LIBRARY_DLL, nullptr, 0x0);
+    if (!mod) {
+        AlertLastError("Failed to load " STAPEL_LIBRARY_DLL);
+        return -1;
+    }
 
     using Entry = int (*)(int, char**);
     Entry fnEntry = reinterpret_cast<Entry>(GetProcAddress(mod, STAPEL_ENTRY_SYMBOL));
 
-    if (!fnEntry)
-    {
+    if (!fnEntry) {
         AlertLastError("Failed to load symbol " STAPEL_ENTRY_SYMBOL " from " STAPEL_LIBRARY_DLL ".");
         FreeLibrary(mod);
         return -1;
@@ -71,12 +61,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine,
     // during the initialization phase.
     int r = fnEntry(__argc, __argv);
 
-    if (r != 0)
-    {
+    if (r != 0) {
         MessageBox(NULL, (LPCTSTR) "Engine entry return indicated failure.", TEXT("Error"), MB_OK);
         return r;
     }
 
     FreeLibrary(mod);
-	return 0;
+    return 0;
 }

@@ -20,24 +20,20 @@
 #define STAPEL_LIBRARY_SO "bin/libStapelEngine.so"
 #define STAPEL_ENTRY_FN "stapel_engine_entry"
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
     void* handle = dlopen(STAPEL_LIBRARY_SO, RTLD_NOW);
     if (!handle) {
-        std::cout
-            << "Error: Could not locate dynamic library `" << STAPEL_LIBRARY_SO << "': "
-            << dlerror() << "\n";
+        std::cout << "Error: Could not locate dynamic library `" << STAPEL_LIBRARY_SO << "': " << dlerror() << "\n";
 
         return 1;
     }
 
-    using EngineEntry = int(*)(int, char**);
+    using EngineEntry = int (*)(int, char**);
     EngineEntry entry = reinterpret_cast<EngineEntry>(dlsym(handle, STAPEL_ENTRY_FN));
     if (!entry) {
-        std::cout
-            << "Error: Failed to load `" << STAPEL_ENTRY_FN
-            <<"' from " << STAPEL_LIBRARY_SO << ": "
-            << dlerror() << "\n";
+        std::cout << "Error: Failed to load `" << STAPEL_ENTRY_FN << "' from " << STAPEL_LIBRARY_SO << ": " << dlerror()
+                  << "\n";
 
         dlclose(handle);
 
