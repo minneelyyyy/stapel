@@ -31,17 +31,40 @@
 
 namespace stapel::backend::vulkan
 {
+
+class DescriptorAllocator
+{
+public:
+    struct PoolSizeRatio {
+        VkDescriptorType type;
+        float ratio;
+    };
+
+public:
+    DescriptorAllocator(VkDevice device, uint32_t max_sets, std::span<PoolSizeRatio> pool_ratios);
+
+    void clearDescriptors();
+    void destroyPool();
+
+    VkDescriptorSet allocate(VkDescriptorSetLayout layout);
+
+private:
+    VkDevice device_;
+    VkDescriptorPool pool_;
+};
+
 class Renderer : public stapel::Renderer
 {
-  public:
+public:
     Renderer(std::shared_ptr<Window> window, const char* name, uint32_t version);
     ~Renderer();
 
     stapel::Renderer::Backend backend() const;
 
+    void drawBackground(VkCommandBuffer cmd, Image& img);
     void drawFrame();
 
-  private:
+private:
     struct FrameData {
         VkCommandPool pool;
         VkCommandBuffer buffer;
@@ -53,11 +76,13 @@ class Renderer : public stapel::Renderer
     struct Swapchain {
         VkSwapchainKHR chain;
         std::vector<Image> images;
+        VkExtent3D extent;
+        VkFormat format;
     };
 
     const static unsigned int FRAME_OVERLAP = 2;
 
-  private:
+private:
     static Swapchain createSwapchain(Window& window, vulkan::Device& device, VkSurfaceKHR surface);
 
     void destroySwapchain(VkDevice device);
@@ -67,18 +92,27 @@ class Renderer : public stapel::Renderer
         return frames_[frame_idx_ % frames_.size()];
     };
 
-  private:
+private:
     std::shared_ptr<Window> window_;
     VkInstance instance_;
     VkSurfaceKHR surface_;
     std::unique_ptr<vulkan::Device> device_;
 
     Swapchain swapchain_;
+    std::optional<Image> draw_img_;
 
     std::vector<FrameData> frames_;
     unsigned int frame_idx_ = 0;
 
     DeletionQueue del_;
     VmaAllocator alloc_;
+
+    std::unique_ptr<DescriptorAllocator> descriptor_alloc_;
+
+    VkDescriptorSet draw_image_desc_;
+    VkDescriptorSetLayout draw_image_desc_layout_;
+
+    VkPipeline gradient_pipeline_;
+    VkPipelineLayout gradient_pipeline_layout_;
 };
 } // namespace stapel::backend::vulkan

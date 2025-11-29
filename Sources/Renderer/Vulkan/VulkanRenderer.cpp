@@ -47,6 +47,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <fstream>
 #include <iostream>
 #include <vector>
 
@@ -92,19 +93,19 @@ VkInstance create_instance(const Window& window, const char* name, uint32_t vers
     exts.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
 
 #ifdef USE_X11
-    if (window.GetBackendType() == Window::X11) {
+    if (window.backend() == Window::X11) {
         exts.push_back(VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
     }
 #endif
 
 #ifdef USE_WAYLAND
-    if (window.GetBackendType() == Window::Wayland) {
+    if (window.backend() == Window::Wayland) {
         exts.push_back(VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME);
     }
 #endif
 
 #ifdef USE_WIN32
-    if (window.GetBackendType() == Window::Windows) {
+    if (window.backend() == Window::Windows) {
         exts.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
     }
 #endif
@@ -124,14 +125,17 @@ VkInstance create_instance(const Window& window, const char* name, uint32_t vers
         .pApplicationName = name,
         .applicationVersion = version,
         .pEngineName = "Stapel",
-        .engineVersion = VK_MAKE_VERSION(STAPEL_VERSION_MAJOR, STAPEL_VERSION_MINOR, STAPEL_VERSION_PATCH),
+        .engineVersion =
+            VK_MAKE_VERSION(STAPEL_VERSION_MAJOR, STAPEL_VERSION_MINOR, STAPEL_VERSION_PATCH),
         .apiVersion = VK_API_VERSION_1_4,
     };
 
     auto layers = enabled_validation_layers();
 
     if (enable_validation_layers && layers.size() == 0)
-        std::cout << "WARNING: validation layers specified (implicit from debug build), but none selected" << std::endl;
+        std::cout
+            << "WARNING: validation layers specified (implicit from debug build), but none selected"
+            << std::endl;
 
     VkInstanceCreateInfo info{
         .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
@@ -158,15 +162,17 @@ VkSurfaceFormatKHR select_best_surface_format(VkSurfaceKHR surface, VkPhysicalDe
     vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &count, formats.data());
 
     for (const auto format : formats) {
-        if (format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR && format.format == VK_FORMAT_B8G8R8_SRGB)
+        if (format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR &&
+            format.format == VK_FORMAT_B8G8R8_SRGB)
             return format;
     }
 
     return formats[0];
 }
 
-std::optional<VkPresentModeKHR> select_best_present_mode(VkPhysicalDevice device, VkSurfaceKHR surface,
-                                                         std::span<VkPresentModeKHR> preferred_modes)
+std::optional<VkPresentModeKHR>
+select_best_present_mode(VkPhysicalDevice device, VkSurfaceKHR surface,
+                         std::span<VkPresentModeKHR> preferred_modes)
 {
     uint32_t count = 0;
     vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &count, nullptr);
@@ -196,16 +202,17 @@ VkExtent2D select_best_extent(Window& window, VkSurfaceCapabilitiesKHR capabilit
     }
 
     VkExtent2D extent = {
-        .width =
-            std::clamp<uint32_t>(window.Width(), capabilities.minImageExtent.width, capabilities.maxImageExtent.width),
-        .height = std::clamp<uint32_t>(window.Height(), capabilities.minImageExtent.height,
+        .width = std::clamp<uint32_t>(window.width(), capabilities.minImageExtent.width,
+                                      capabilities.maxImageExtent.width),
+        .height = std::clamp<uint32_t>(window.height(), capabilities.minImageExtent.height,
                                        capabilities.maxImageExtent.height),
     };
 
     return extent;
 }
 
-Renderer::Swapchain Renderer::createSwapchain(Window& window, vulkan::Device& device, VkSurfaceKHR surface)
+Renderer::Swapchain Renderer::createSwapchain(Window& window, vulkan::Device& device,
+                                              VkSurfaceKHR surface)
 {
     VkSurfaceFormatKHR surface_format = select_best_surface_format(surface, device.GetPhys());
 
@@ -215,7 +222,8 @@ Renderer::Swapchain Renderer::createSwapchain(Window& window, vulkan::Device& de
         VK_PRESENT_MODE_IMMEDIATE_KHR,
     };
 
-    VkPresentModeKHR present_mode = select_best_present_mode(device.GetPhys(), surface, mode_pref).value();
+    VkPresentModeKHR present_mode =
+        select_best_present_mode(device.GetPhys(), surface, mode_pref).value();
 
     VkSurfaceCapabilitiesKHR capabilities;
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device.GetPhys(), surface, &capabilities);
@@ -252,27 +260,29 @@ Renderer::Swapchain Renderer::createSwapchain(Window& window, vulkan::Device& de
     };
 
     VkSwapchainKHR chain;
-    if (vkCreateSwapchainKHR(device.GetDevice(), &info, nullptr, &chain) != VK_SUCCESS)
+    if (vkCreateSwapchainKHR(device.device(), &info, nullptr, &chain) != VK_SUCCESS)
         STAPEL_FATAL("Failed to create swapchain");
 
     uint32_t count;
-    vkGetSwapchainImagesKHR(device.GetDevice(), chain, &count, nullptr);
+    vkGetSwapchainImagesKHR(device.device(), chain, &count, nullptr);
 
     std::vector<VkImage> vk_images(count);
-    vkGetSwapchainImagesKHR(device.GetDevice(), chain, &count, vk_images.data());
+    vkGetSwapchainImagesKHR(device.device(), chain, &count, vk_images.data());
 
     std::vector<Image> images;
     images.reserve(count);
 
     for (VkImage image : vk_images) {
-        Image img =
-            Image::wrap(device.GetDevice(), extent.width, extent.height, 1, format, image, VK_IMAGE_LAYOUT_UNDEFINED);
+        Image img = Image::wrap(device.device(), extent.width, extent.height, 1, format, image,
+                                VK_IMAGE_LAYOUT_UNDEFINED);
         images.push_back(std::move(img));
     }
 
     return Swapchain{
         .chain = chain,
         .images = std::move(images),
+        .extent = {extent.width, extent.height, 1},
+        .format = format,
     };
 }
 
@@ -336,20 +346,31 @@ VkFence create_fence(VkDevice device, bool signaled)
     return fence;
 }
 
+void Renderer::drawBackground(VkCommandBuffer cmd, Image& img)
+{
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, gradient_pipeline_);
+
+    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, gradient_pipeline_layout_, 0, 1,
+                            &draw_image_desc_, 0, nullptr);
+
+    vkCmdDispatch(cmd, std::ceil(draw_img_.value().width() / 16.0),
+                  std::ceil(draw_img_.value().height() / 16.0), 1);
+}
+
 void Renderer::drawFrame()
 {
     FrameData& frame = getFrame();
 
-    vkWaitForFences(device_->GetDevice(), 1, &frame.render_fence, true, UINT64_MAX);
-    vkResetFences(device_->GetDevice(), 1, &frame.render_fence);
+    vkWaitForFences(device_->device(), 1, &frame.render_fence, true, UINT64_MAX);
+    vkResetFences(device_->device(), 1, &frame.render_fence);
 
-    frame.del.DeleteAll();
+    frame.del.clear();
 
     uint32_t image_idx;
-    vkAcquireNextImageKHR(device_->GetDevice(), swapchain_.chain, UINT64_MAX, frame.swapchain_semaphore, nullptr,
-                          &image_idx);
+    vkAcquireNextImageKHR(device_->device(), swapchain_.chain, UINT64_MAX,
+                          frame.swapchain_semaphore, nullptr, &image_idx);
 
-    Image& img = swapchain_.images[image_idx];
+    Image& swapchain_img = swapchain_.images[image_idx];
 
     VkCommandBuffer cmd = frame.buffer;
     vkResetCommandBuffer(cmd, 0);
@@ -359,27 +380,23 @@ void Renderer::drawFrame()
         .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
     };
 
-    vkBeginCommandBuffer(cmd, &cmd_buf_begin_info);
+    Image& draw_img = draw_img_.value();
 
-    img.transition(cmd, VK_IMAGE_LAYOUT_GENERAL);
+    if (VK_SUCCESS != vkBeginCommandBuffer(cmd, &cmd_buf_begin_info))
+        STAPEL_FATAL("failure to begin command buffer");
 
-    VkClearColorValue clear;
-    float flash = std::abs(std::sin(frame_idx_ / 120.f));
-    clear = {{0.0f, 0.0f, flash, 1.0f}};
+    draw_img.transition(cmd, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_UNDEFINED);
 
-    VkImageSubresourceRange range = {
-        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-        .baseMipLevel = 0,
-        .levelCount = VK_REMAINING_MIP_LEVELS,
-        .baseArrayLayer = 0,
-        .layerCount = VK_REMAINING_ARRAY_LAYERS,
-    };
+    drawBackground(cmd, draw_img);
 
-    vkCmdClearColorImage(cmd, swapchain_.images[image_idx].GetImage(), VK_IMAGE_LAYOUT_GENERAL, &clear, 1, &range);
+    draw_img.transition(cmd, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    swapchain_img.transition(cmd, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
-    img.transition(cmd, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+    draw_img.copy(cmd, swapchain_img);
+    swapchain_img.transition(cmd, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
-    vkEndCommandBuffer(cmd);
+    if (VK_SUCCESS != vkEndCommandBuffer(cmd))
+        STAPEL_FATAL("failure at end of command buffer");
 
     VkCommandBufferSubmitInfo cmd_info = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
@@ -420,15 +437,193 @@ void Renderer::drawFrame()
         .pImageIndices = &image_idx,
     };
 
-    vkQueuePresentKHR(device_->GetQueue(), &present_info);
+    switch (vkQueuePresentKHR(device_->GetQueue(), &present_info)) {
+    case VK_SUCCESS:
+    case VK_SUBOPTIMAL_KHR:
+        break;
+    default:
+        STAPEL_FATAL("queue present error");
+    }
 
     frame_idx_++;
 }
 
-Renderer::Renderer(std::shared_ptr<Window> window, const char* name, uint32_t version) : window_(window)
+class DescriptorSetLayoutBuilder
+{
+public:
+    DescriptorSetLayoutBuilder()
+    {}
+
+    DescriptorSetLayoutBuilder& addBinding(uint32_t binding, VkDescriptorType type)
+    {
+        VkDescriptorSetLayoutBinding set_layout_binding = {
+            .binding = binding,
+            .descriptorType = type,
+            .descriptorCount = 1,
+        };
+
+        bindings_.push_back(set_layout_binding);
+
+        return *this;
+    }
+
+    VkDescriptorSetLayout build(VkDevice device, VkShaderStageFlags shader_stages,
+                                void* next_ptr = nullptr,
+                                VkDescriptorSetLayoutCreateFlags flags = 0)
+    {
+        for (auto& binding : bindings_) {
+            binding.stageFlags |= shader_stages;
+        }
+
+        VkDescriptorSetLayoutCreateInfo desc_set_layout_create_info = {
+            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+            .pNext = next_ptr,
+            .flags = flags,
+            .bindingCount = static_cast<uint32_t>(bindings_.size()),
+            .pBindings = bindings_.data(),
+        };
+
+        VkDescriptorSetLayout layout;
+        if (VK_SUCCESS !=
+            vkCreateDescriptorSetLayout(device, &desc_set_layout_create_info, nullptr, &layout))
+            STAPEL_FATAL("failed to create descriptor set layout");
+
+        return layout;
+    }
+
+private:
+    std::vector<VkDescriptorSetLayoutBinding> bindings_;
+};
+
+DescriptorAllocator::DescriptorAllocator(VkDevice device, uint32_t max_sets,
+                                         std::span<PoolSizeRatio> pool_ratios)
+    : device_(device)
+{
+    std::vector<VkDescriptorPoolSize> pool_sizes;
+    pool_sizes.reserve(pool_ratios.size());
+
+    std::transform(pool_ratios.begin(), pool_ratios.end(), std::back_inserter(pool_sizes),
+                   [&](const PoolSizeRatio& ratio) {
+                       return VkDescriptorPoolSize{
+                           .type = ratio.type,
+                           .descriptorCount = uint32_t(ratio.ratio * max_sets),
+                       };
+                   });
+
+    VkDescriptorPoolCreateInfo pool_info = {
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+        .maxSets = max_sets,
+        .poolSizeCount = static_cast<uint32_t>(pool_sizes.size()),
+        .pPoolSizes = pool_sizes.data(),
+    };
+
+    vkCreateDescriptorPool(device, &pool_info, nullptr, &pool_);
+}
+
+void DescriptorAllocator::clearDescriptors()
+{
+    vkResetDescriptorPool(device_, pool_, 0);
+}
+
+void DescriptorAllocator::destroyPool()
+{
+    vkDestroyDescriptorPool(device_, pool_, nullptr);
+}
+
+VkDescriptorSet DescriptorAllocator::allocate(VkDescriptorSetLayout layout)
+{
+    VkDescriptorSetAllocateInfo alloc_info = {
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+        .descriptorPool = pool_,
+        .descriptorSetCount = 1,
+        .pSetLayouts = &layout,
+    };
+
+    VkDescriptorSet ds;
+    if (VK_SUCCESS != vkAllocateDescriptorSets(device_, &alloc_info, &ds))
+        STAPEL_FATAL("failure to allocate descriptor set");
+
+    return ds;
+}
+
+std::optional<VkShaderModule> load_shader_module(VkDevice device, const char* file_path)
+{
+    std::ifstream file(file_path, std::ios::ate | std::ios::binary);
+
+    if (!file.is_open())
+        return {};
+
+    const auto file_size = static_cast<size_t>(file.tellg());
+
+    std::vector<uint32_t> buffer(file_size / sizeof(uint32_t));
+
+    file.seekg(0);
+
+    file.read(reinterpret_cast<char*>(buffer.data()), buffer.size() * sizeof(uint32_t));
+
+    file.close();
+
+    VkShaderModuleCreateInfo create_info = {
+        .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+        .codeSize = static_cast<uint32_t>(buffer.size() * sizeof(uint32_t)),
+        .pCode = buffer.data(),
+    };
+
+    VkShaderModule mod;
+    if (vkCreateShaderModule(device, &create_info, nullptr, &mod) != VK_SUCCESS) {
+        return {};
+    }
+
+    return mod;
+}
+
+VkPipelineLayout create_compute_pipeline_layout(Device& dev, VkDescriptorSetLayout layout)
+{
+    VkPipelineLayoutCreateInfo compute_layout = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+        .setLayoutCount = 1,
+        .pSetLayouts = &layout,
+    };
+
+    VkPipelineLayout pipeline_layout;
+    if (VK_SUCCESS !=
+        vkCreatePipelineLayout(dev.device(), &compute_layout, nullptr, &pipeline_layout))
+        STAPEL_FATAL("failure to create compute pipeline");
+
+    return pipeline_layout;
+}
+
+std::optional<VkPipeline> create_compute_pipeline(Device& dev, VkPipelineLayout layout)
+{
+    auto mod = load_shader_module(dev.device(), "shaders/gradient.comp.spv");
+    if (!mod.has_value())
+        STAPEL_FATAL("failed to generate shader");
+
+    VkPipelineShaderStageCreateInfo stage_info = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+        .stage = VK_SHADER_STAGE_COMPUTE_BIT,
+        .module = mod.value(),
+        .pName = "main",
+    };
+
+    VkComputePipelineCreateInfo compute_pipeline_create_info = {
+        .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+        .stage = stage_info,
+        .layout = layout,
+    };
+
+    VkPipeline pipeline;
+    vkCreateComputePipelines(dev.device(), VK_NULL_HANDLE, 1, &compute_pipeline_create_info,
+                             nullptr, &pipeline);
+
+    return pipeline;
+}
+
+Renderer::Renderer(std::shared_ptr<Window> window, const char* name, uint32_t version)
+    : window_(window)
 {
     instance_ = create_instance(*window, name, version);
-    surface_ = window->CreateVulkanSurface(instance_);
+    surface_ = window->createVulkanSurface(instance_);
 
     auto devs = vulkan::DeviceBuilder(instance_, surface_)
                     .ext(VK_KHR_SWAPCHAIN_EXTENSION_NAME)
@@ -448,18 +643,18 @@ Renderer::Renderer(std::shared_ptr<Window> window, const char* name, uint32_t ve
     swapchain_ = createSwapchain(*window, *device_, surface_);
 
     uint32_t size;
-    vkGetSwapchainImagesKHR(device_->GetDevice(), swapchain_.chain, &size, nullptr);
+    vkGetSwapchainImagesKHR(device_->device(), swapchain_.chain, &size, nullptr);
 
     frames_.reserve(size);
 
     for (uint32_t i = 0; i < size; i++) {
         FrameData frame;
 
-        frame.pool = create_command_pool(device_->GetDevice(), device_->GetFamilyIndex());
-        frame.buffer = create_command_buffer(device_->GetDevice(), frame.pool);
-        frame.render_fence = create_fence(device_->GetDevice(), true);
-        frame.render_semaphore = create_binary_semaphore(device_->GetDevice());
-        frame.swapchain_semaphore = create_binary_semaphore(device_->GetDevice());
+        frame.pool = create_command_pool(device_->device(), device_->GetFamilyIndex());
+        frame.buffer = create_command_buffer(device_->device(), frame.pool);
+        frame.render_fence = create_fence(device_->device(), true);
+        frame.render_semaphore = create_binary_semaphore(device_->device());
+        frame.swapchain_semaphore = create_binary_semaphore(device_->device());
 
         frames_.push_back(frame);
     }
@@ -467,13 +662,60 @@ Renderer::Renderer(std::shared_ptr<Window> window, const char* name, uint32_t ve
     VmaAllocatorCreateInfo allocator_info = {
         .flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT,
         .physicalDevice = device_->GetPhys(),
-        .device = device_->GetDevice(),
+        .device = device_->device(),
         .instance = instance_,
     };
 
     vmaCreateAllocator(&allocator_info, &alloc_);
 
-    del_.Push([&]() { vmaDestroyAllocator(alloc_); });
+    draw_img_ = Image(alloc_, device_->device(), swapchain_.extent.width, swapchain_.extent.width,
+                      swapchain_.extent.depth, swapchain_.format);
+
+    del_.push([&]() { vmaDestroyAllocator(alloc_); });
+
+    std::vector<DescriptorAllocator::PoolSizeRatio> sizes = {{VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1}};
+
+    descriptor_alloc_ = std::make_unique<DescriptorAllocator>(device_->device(), 10, sizes);
+
+    draw_image_desc_layout_ = DescriptorSetLayoutBuilder()
+                                  .addBinding(0, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE)
+                                  .build(device_->device(), VK_SHADER_STAGE_COMPUTE_BIT);
+
+    draw_image_desc_ = descriptor_alloc_->allocate(draw_image_desc_layout_);
+
+    VkDescriptorImageInfo img_info = {
+        .imageView = draw_img_->view(),
+        .imageLayout = VK_IMAGE_LAYOUT_GENERAL,
+    };
+
+    VkWriteDescriptorSet draw_image_write = {
+        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+        .dstSet = draw_image_desc_,
+        .dstBinding = 0,
+        .descriptorCount = 1,
+        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+        .pImageInfo = &img_info,
+    };
+
+    vkUpdateDescriptorSets(device_->device(), 1, &draw_image_write, 0, nullptr);
+
+    del_.push([&]() {
+        descriptor_alloc_.reset();
+        vkDestroyDescriptorSetLayout(device_->device(), draw_image_desc_layout_, nullptr);
+    });
+
+    gradient_pipeline_layout_ = create_compute_pipeline_layout(*device_, draw_image_desc_layout_);
+
+    auto pipeline = create_compute_pipeline(*device_, gradient_pipeline_layout_);
+    if (!pipeline.has_value())
+        STAPEL_FATAL("failure to create compute shader pipeline");
+
+    gradient_pipeline_ = pipeline.value();
+
+    del_.push([&]() {
+        vkDestroyPipelineLayout(device_->device(), gradient_pipeline_layout_, nullptr);
+        vkDestroyPipeline(device_->device(), gradient_pipeline_, nullptr);
+    });
 }
 
 stapel::Renderer::Backend Renderer::backend() const
@@ -489,21 +731,22 @@ void Renderer::destroySwapchain(VkDevice device)
 
 Renderer::~Renderer()
 {
-    vkDeviceWaitIdle(device_->GetDevice());
+    vkDeviceWaitIdle(device_->device());
 
     for (auto& frame : frames_) {
-        vkDestroyCommandPool(device_->GetDevice(), frame.pool, nullptr);
+        vkDestroyCommandPool(device_->device(), frame.pool, nullptr);
 
-        vkDestroyFence(device_->GetDevice(), frame.render_fence, nullptr);
-        vkDestroySemaphore(device_->GetDevice(), frame.render_semaphore, nullptr);
-        vkDestroySemaphore(device_->GetDevice(), frame.swapchain_semaphore, nullptr);
+        vkDestroyFence(device_->device(), frame.render_fence, nullptr);
+        vkDestroySemaphore(device_->device(), frame.render_semaphore, nullptr);
+        vkDestroySemaphore(device_->device(), frame.swapchain_semaphore, nullptr);
 
-        frame.del.DeleteAll();
+        frame.del.clear();
     }
 
-    del_.DeleteAll();
+    draw_img_.reset();
+    del_.clear();
 
-    destroySwapchain(device_->GetDevice());
+    destroySwapchain(device_->device());
 
     device_.reset();
 

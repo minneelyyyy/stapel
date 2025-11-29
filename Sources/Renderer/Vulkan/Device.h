@@ -112,7 +112,7 @@ struct PhysicalDeviceInfo {
 
 class Device
 {
-  public:
+public:
     Device(VkInstance instance, VkSurfaceKHR surface, const PhysicalDeviceInfo& info);
     ~Device();
 
@@ -120,7 +120,7 @@ class Device
     {
         return phys_;
     }
-    VkDevice GetDevice() const
+    VkDevice device() const
     {
         return device_;
     }
@@ -133,7 +133,7 @@ class Device
         return queue_;
     }
 
-  private:
+private:
     VkPhysicalDevice phys_;
     VkDevice device_;
     uint32_t idx_;
@@ -142,7 +142,7 @@ class Device
 
 class DeviceBuilder
 {
-  public:
+public:
     DeviceBuilder(VkInstance instance, VkSurfaceKHR surface);
     ~DeviceBuilder();
 
@@ -165,7 +165,7 @@ class DeviceBuilder
     bool checkDeviceFeatures(VkPhysicalDevice dev);
     std::vector<PhysicalDeviceInfo> devices();
 
-  private:
+private:
     VkInstance instance_;
     VkSurfaceKHR surface_;
     std::shared_ptr<DeviceConfig> cfg_;

@@ -86,18 +86,18 @@ Window::~Window()
     UnregisterClass(CLASS_NAME, instance_);
 }
 
-uint32_t Window::Width() const
+uint32_t Window::width() const
 {
     return static_cast<uint32_t>(width);
 }
 
-uint32_t Window::Height() const
+uint32_t Window::height() const
 {
     return static_cast<uint32_t>(height);
 }
 
 #ifdef USE_VULKAN
-VkSurfaceKHR Window::CreateVulkanSurface(VkInstance instance)
+VkSurfaceKHR Window::createVulkanSurface(VkInstance instance)
 {
     VkWin32SurfaceCreateInfoKHR info{};
     info.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;

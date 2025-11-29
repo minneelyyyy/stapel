@@ -22,15 +22,15 @@ DeletionQueue::DeletionQueue()
 
 DeletionQueue::~DeletionQueue()
 {
-    DeleteAll();
+    clear();
 }
 
-void DeletionQueue::Push(std::function<void()>&& f)
+void DeletionQueue::push(std::function<void()>&& f)
 {
     fns_.push_back(f);
 }
 
-void DeletionQueue::DeleteAll()
+void DeletionQueue::clear()
 {
     for (auto it = fns_.rbegin(); it != fns_.rend(); it++) {
         (*it)();

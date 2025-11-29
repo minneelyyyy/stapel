@@ -96,6 +96,11 @@ install(
 )
 
 install(
+    FILES "${BIN}/shaders/gradient.comp.spv"
+    DESTINATION shaders/
+)
+
+install(
     FILES "${CMAKE_SOURCE_DIR}/NOTICE"
     DESTINATION .
 )

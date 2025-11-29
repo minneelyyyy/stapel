@@ -22,14 +22,14 @@ namespace stapel::backend
 {
 class DeletionQueue
 {
-  public:
+public:
     DeletionQueue();
     ~DeletionQueue();
 
-    void Push(std::function<void()>&&);
-    void DeleteAll();
+    void push(std::function<void()>&&);
+    void clear();
 
-  private:
+private:
     std::deque<std::function<void()>> fns_;
 };
 }; // namespace stapel::backend

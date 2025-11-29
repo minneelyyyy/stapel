@@ -26,13 +26,14 @@ extern "C" STAPEL_API int stapel_engine_entry(int argc, char** argv)
 {
     stapel::Window::Specification spec = {
         .width = 800,
-        .height = 600,
+        .height = 608,
         .title = "Stapel Game",
     };
 
     auto window = stapel::Window::getWindow(spec);
 
-    auto renderer = stapel::Renderer::getRenderer(window, stapel::Renderer::Backend::Vulkan, "Stapel Game", 0, 0, 1);
+    auto renderer = stapel::Renderer::getRenderer(window, stapel::Renderer::Backend::Vulkan,
+                                                  "Stapel Game", 0, 0, 1);
 
     while (!window->shouldClose()) {
         window->handleEvents();

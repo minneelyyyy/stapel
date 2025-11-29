@@ -47,7 +47,7 @@ Window::~Window()
 }
 
 #ifdef USE_VULKAN
-VkSurfaceKHR Window::CreateVulkanSurface(VkInstance instance)
+VkSurfaceKHR Window::createVulkanSurface(VkInstance instance)
 {
     VkXlibSurfaceCreateInfoKHR info = {};
     info.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;

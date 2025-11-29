@@ -24,18 +24,21 @@ namespace stapel::backend::vulkan
 {
 class Image
 {
-  public:
-    Image(VkDevice device, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, VkImage image,
-          VkImageLayout layout, VkImageView view = nullptr);
-    Image(VmaAllocator alloc, VkDevice device, uint32_t width, uint32_t height, uint32_t depth, VkFormat format);
+public:
+    Image(VkDevice device, uint32_t width, uint32_t height, uint32_t depth, VkFormat format,
+          VkImage image, VkImageLayout layout, VkImageView view = nullptr);
+    Image(VmaAllocator alloc, VkDevice device, uint32_t width, uint32_t height, uint32_t depth,
+          VkFormat format);
+    ~Image();
 
     Image(const Image&) = delete;
     Image& operator=(const Image&) = delete;
 
     Image(Image&& other) noexcept
-        : owns_image_(other.owns_image_), owns_view_(other.owns_view_), allocator_(other.allocator_),
-          device_(other.device_), image_(other.image_), view_(other.view_), extent_(other.extent_),
-          current_layout_(other.current_layout_), format_(other.format_), allocation_(other.allocation_)
+        : owns_image_(other.owns_image_), owns_view_(other.owns_view_),
+          allocator_(other.allocator_), device_(other.device_), image_(other.image_),
+          view_(other.view_), extent_(other.extent_), current_layout_(other.current_layout_),
+          format_(other.format_), allocation_(other.allocation_)
     {
         other.owns_image_ = false;
         other.owns_view_ = false;
@@ -70,25 +73,37 @@ class Image
         return *this;
     }
 
-    void clear();
-    ~Image();
-
-    VkImage GetImage() const
+    VkImage image() const
     {
         return image_;
     }
-    VkImageView GetView() const
+
+    VkImageView view() const
     {
         return view_;
     }
 
-    static Image wrap(VkDevice device, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, VkImage image,
-                      VkImageLayout layout, VkImageView view = nullptr);
+    uint32_t width() const
+    {
+        return extent_.width;
+    }
 
-    void transition(VkCommandBuffer cmd, VkImageLayout layout);
+    uint32_t height() const
+    {
+        return extent_.height;
+    }
+
+    static Image wrap(VkDevice device, uint32_t width, uint32_t height, uint32_t depth,
+                      VkFormat format, VkImage image, VkImageLayout layout,
+                      VkImageView view = nullptr);
+
+    void transition(VkCommandBuffer cmd, VkImageLayout layout,
+                    std::optional<VkImageLayout> old_layout = {});
     void copy(VkCommandBuffer cmd, Image& dest);
 
-  private:
+    void clear();
+
+private:
     bool owns_image_ = true;
     bool owns_view_ = true;
     VmaAllocator allocator_;

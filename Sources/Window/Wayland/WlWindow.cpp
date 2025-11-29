@@ -181,7 +181,7 @@ void Window::handleEvents()
 }
 
 #ifdef USE_VULKAN
-VkSurfaceKHR Window::CreateVulkanSurface(VkInstance instance)
+VkSurfaceKHR Window::createVulkanSurface(VkInstance instance)
 {
     VkWaylandSurfaceCreateInfoKHR info = {
         .sType = VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR,

@@ -45,26 +45,27 @@ public:
     Window(const Specification& spec);
     ~Window() override;
 
-    uint32_t Width() const override
+    uint32_t width() const override
     {
         return state_.width;
     }
 
-    uint32_t Height() const override
+    uint32_t height() const override
     {
         return state_.height;
     }
 
     void handleEvents() override;
+
     bool shouldClose() override
     {
         return state_.should_close;
     };
 
 #ifdef USE_VULKAN
-    VkSurfaceKHR CreateVulkanSurface(VkInstance instance) override;
+    VkSurfaceKHR createVulkanSurface(VkInstance instance) override;
 #endif
-    Window::Backend GetBackendType() const override
+    Window::Backend backend() const override
     {
         return Window::Wayland;
     }

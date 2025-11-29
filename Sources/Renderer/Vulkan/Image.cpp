@@ -91,7 +91,7 @@ Image Image::wrap(VkDevice device, uint32_t width, uint32_t height, uint32_t dep
     return img;
 }
 
-void Image::transition(VkCommandBuffer cmd, VkImageLayout layout)
+void Image::transition(VkCommandBuffer cmd, VkImageLayout layout, std::optional<VkImageLayout> old_layout)
 {
     VkImageAspectFlags aspect_mask =
         (layout == VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
@@ -102,7 +102,7 @@ void Image::transition(VkCommandBuffer cmd, VkImageLayout layout)
         .srcAccessMask = VK_ACCESS_2_MEMORY_WRITE_BIT,
         .dstStageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT,
         .dstAccessMask = VK_ACCESS_2_MEMORY_WRITE_BIT | VK_ACCESS_2_MEMORY_READ_BIT,
-        .oldLayout = current_layout_,
+        .oldLayout = old_layout.has_value() ? old_layout.value() : current_layout_,
         .newLayout = layout,
         .image = image_,
         .subresourceRange =
@@ -160,9 +160,9 @@ void Image::copy(VkCommandBuffer cmd, Image& dest)
     VkBlitImageInfo2 blit_info = {
         .sType = VK_STRUCTURE_TYPE_BLIT_IMAGE_INFO_2,
         .srcImage = image_,
-        .srcImageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        .srcImageLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
         .dstImage = dest.image_,
-        .dstImageLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+        .dstImageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         .regionCount = 1,
         .pRegions = &blit_region,
         .filter = VK_FILTER_LINEAR,

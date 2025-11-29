@@ -36,5 +36,5 @@ BraceWrapping:
 
 AllowShortIfStatementsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: None
-ColumnLimit: 120
+ColumnLimit: 100
 ...

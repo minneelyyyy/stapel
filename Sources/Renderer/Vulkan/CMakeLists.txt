@@ -1,4 +1,24 @@
 
+
+find_program(GLSL_VALIDATOR glslangValidator HINTS /usr/bin /usr/local/bin $ENV{VULKAN_SDK}/Bin/ $ENV{VULKAN_SDK}/Bin32/)
+
+add_custom_command(
+    OUTPUT ${BIN}/shaders/gradient.comp.spv
+    COMMAND ${GLSL_VALIDATOR} -V ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/gradient.comp -o ${BIN}/shaders/gradient.comp.spv
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/gradient.comp
+)
+
+add_custom_target(
+    shaders
+    DEPENDS
+        ${BIN}/shaders/gradient.comp.spv
+)
+
+add_dependencies(
+    StapelEngine
+    shaders
+)
+
 target_sources(
     StapelEngine
     PRIVATE

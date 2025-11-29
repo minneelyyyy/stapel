@@ -36,8 +36,8 @@ public:
     static std::shared_ptr<Window> getWindow(const Window::Specification& spec);
     virtual ~Window() = default;
 
-    virtual uint32_t Width() const = 0;
-    virtual uint32_t Height() const = 0;
+    virtual uint32_t width() const = 0;
+    virtual uint32_t height() const = 0;
 
     virtual void handleEvents() {};
     virtual bool shouldClose()
@@ -46,10 +46,10 @@ public:
     };
 
 #ifdef USE_VULKAN
-    virtual VkSurfaceKHR CreateVulkanSurface(VkInstance instance) = 0;
+    virtual VkSurfaceKHR createVulkanSurface(VkInstance instance) = 0;
 #endif
     enum Backend { Wayland, X11, Windows };
 
-    virtual Backend GetBackendType() const = 0;
+    virtual Backend backend() const = 0;
 };
 } // namespace stapel
