@@ -55,8 +55,8 @@ public:
         return state_.height;
     }
 
-    void Event() override;
-    bool ShouldClose() override
+    void handleEvents() override;
+    bool shouldClose() override
     {
         return state_.should_close;
     };

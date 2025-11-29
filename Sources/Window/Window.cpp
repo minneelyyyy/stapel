@@ -30,7 +30,7 @@
 
 namespace stapel
 {
-std::shared_ptr<Window> Window::GetWindow(const Window::Specification& spec)
+std::shared_ptr<Window> Window::getWindow(const Window::Specification& spec)
 {
 #ifdef USE_WAYLAND
     if (getenv("WAYLAND_DISPLAY")) {

@@ -169,7 +169,7 @@ Window::~Window()
         wl_display_disconnect(display_);
 }
 
-void Window::Event()
+void Window::handleEvents()
 {
     while (wl_display_prepare_read(display_) != 0)
         wl_display_dispatch_pending(display_);

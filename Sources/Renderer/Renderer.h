@@ -28,7 +28,7 @@ public:
     enum Backend { Vulkan };
 
 public:
-    static std::unique_ptr<Renderer> GetRenderer(std::shared_ptr<Window> window, Backend api, const char* name,
+    static std::unique_ptr<Renderer> getRenderer(std::shared_ptr<Window> window, Backend api, const char* name,
                                                  uint32_t major, uint32_t minor, uint32_t patch);
     virtual ~Renderer() = default;
 

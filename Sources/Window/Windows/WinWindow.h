@@ -35,7 +35,7 @@ public:
     uint32_t Width() const override;
     uint32_t Height() const override;
 
-    void Event() override;
+    void handleEvents() override;
 
 #ifdef USE_VULKAN
     VkSurfaceKHR CreateVulkanSurface(VkInstance instance) override;

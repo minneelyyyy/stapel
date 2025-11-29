@@ -33,14 +33,14 @@ public:
         const char* title;
     };
 
-    static std::shared_ptr<Window> GetWindow(const Window::Specification& spec);
+    static std::shared_ptr<Window> getWindow(const Window::Specification& spec);
     virtual ~Window() = default;
 
     virtual uint32_t Width() const = 0;
     virtual uint32_t Height() const = 0;
 
-    virtual void Event() {};
-    virtual bool ShouldClose()
+    virtual void handleEvents() {};
+    virtual bool shouldClose()
     {
         return false;
     };

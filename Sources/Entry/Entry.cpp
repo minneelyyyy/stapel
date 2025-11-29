@@ -30,12 +30,12 @@ extern "C" STAPEL_API int stapel_engine_entry(int argc, char** argv)
         .title = "Stapel Game",
     };
 
-    auto window = stapel::Window::GetWindow(spec);
+    auto window = stapel::Window::getWindow(spec);
 
-    auto renderer = stapel::Renderer::GetRenderer(window, stapel::Renderer::Backend::Vulkan, "Stapel Game", 0, 0, 1);
+    auto renderer = stapel::Renderer::getRenderer(window, stapel::Renderer::Backend::Vulkan, "Stapel Game", 0, 0, 1);
 
-    while (!window->ShouldClose()) {
-        window->Event();
+    while (!window->shouldClose()) {
+        window->handleEvents();
         renderer->drawFrame();
     }
 
