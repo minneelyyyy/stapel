@@ -11,13 +11,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+**/
 
 #pragma once
 
 #include <Stapel/Stapel.h>
 
-#ifdef VULKAN_ENABLED
+#ifdef USE_VULKAN
 #include <vulkan/vulkan.h>
 #endif
 
@@ -25,7 +25,6 @@
 
 namespace stapel
 {
-    
     class Window
     {
     public:
@@ -42,7 +41,7 @@ namespace stapel
         virtual void Event() {};
         virtual bool ShouldClose() { return false; };
 
-#ifdef VULKAN_ENABLED
+#ifdef USE_VULKAN
         virtual VkSurfaceKHR CreateVulkanSurface(VkInstance instance) = 0;
 #endif
         enum Backend { Wayland, X11, Windows };

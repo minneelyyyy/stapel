@@ -11,11 +11,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+**/
 
 #include "X11Window.h"
 
+#ifdef USE_VULKAN
 #include <vulkan/vulkan_xlib.h>
+#endif
 
 #include <stdexcept>
 
@@ -51,7 +53,7 @@ namespace stapel::backend
         XCloseDisplay(display_);
     }
 
-#ifdef VULKAN_ENABLED
+#ifdef USE_VULKAN
     VkSurfaceKHR X11Window::CreateVulkanSurface(VkInstance instance)
     {
         VkXlibSurfaceCreateInfoKHR info {};

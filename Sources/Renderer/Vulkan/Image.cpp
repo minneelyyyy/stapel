@@ -14,7 +14,6 @@
 **/
 
 #include "Image.h"
-#include "Renderer/Vulkan/VulkanRenderer.h"
 
 namespace stapel::backend::vulkan
 {

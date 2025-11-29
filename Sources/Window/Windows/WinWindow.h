@@ -11,7 +11,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+**/
 
 #pragma once
 
@@ -20,7 +20,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
-#ifdef VULKAN_ENABLED
+#ifdef USE_VULKAN
 #include <vulkan/vulkan.h>
 #endif
 
@@ -37,7 +37,7 @@ namespace stapel::backend
 
         void Event() override;
 
-#ifdef VULKAN_ENABLED
+#ifdef USE_VULKAN
         VkSurfaceKHR CreateVulkanSurface(VkInstance instance) override;
 #endif
 

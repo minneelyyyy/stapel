@@ -15,7 +15,7 @@
 
 #include "WinWindow.h"
 
-#ifdef VULKAN_ENABLED
+#ifdef USE_VULKAN
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_win32.h>
 #endif
@@ -107,7 +107,7 @@ namespace stapel::backend
 		return static_cast<uint32_t>(height);
 	}
 
-#ifdef VULKAN_ENABLED
+#ifdef USE_VULKAN
 	VkSurfaceKHR Win32Window::CreateVulkanSurface(VkInstance instance)
 	{
 		VkWin32SurfaceCreateInfoKHR info {};

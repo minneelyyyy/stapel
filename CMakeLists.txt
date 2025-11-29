@@ -8,7 +8,6 @@ project(
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
 
 set(SRC "${CMAKE_SOURCE_DIR}/Sources")
 set(INC "${CMAKE_SOURCE_DIR}/Include")
@@ -39,12 +38,12 @@ configure_file(
 target_include_directories(StapelEngine PRIVATE ${BIN}/generated)
 set_target_properties(StapelEngine PROPERTIES VERSION ${PROJECT_VERSION})
 
-FILE(GLOB_RECURSE PUBLIC_INCLUDES "${PROJECT_SOURCE_DIR}/Include/*")
+FILE(GLOB_RECURSE PUBLIC_INCLUDES "${INC}/*")
 
 target_sources(
     StapelEngine
     PUBLIC FILE_SET HEADERS
-        BASE_DIRS "${PROJECT_SOURCE_DIR}/Include"
+        BASE_DIRS "${INC}"
         FILES
             ${PUBLIC_INCLUDES}
 )
@@ -98,14 +97,14 @@ install(
     DESTINATION .
 )
 
-install(
-    FILES "${CMAKE_SOURCE_DIR}/Scripts/dist.py"
-    DESTINATION scripts
-)
-
 stapel_dist_add_file(
     FILE NOTICE
     DESTINATION legal/STAPEL-NOTICE.txt
+)
+
+install(
+    FILES "${CMAKE_SOURCE_DIR}/Scripts/dist.py"
+    DESTINATION scripts
 )
 
 stapel_dist_generate_manifest()

@@ -11,15 +11,15 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+**/
 
 #include "Window.h"
 
 #ifdef TARGET_LINUX
-#   ifdef X11_ENABLED
+#   ifdef USE_X11
 #       include "X11/X11Window.h"
 #   endif
-#   ifdef WAYLAND_ENABLED
+#   ifdef USE_WAYLAND
 #       include "Wayland/WlWindow.h"
 #   endif
 #elif TARGET_WINDOWS
@@ -34,15 +34,15 @@ namespace stapel
     std::shared_ptr<Window> GetWindow(const Window::WindowSpecification& spec)
     {
 #ifdef TARGET_LINUX
-#   if defined(X11_ENABLED) && defined(WAYLAND_ENABLED)
+#   if defined(USE_X11) && defined(USE_WAYLAND)
         if (getenv("WAYLAND_DISPLAY")) {
             return std::make_unique<backend::WaylandWindow>(spec);
         } else if (getenv("DISPLAY")) {
             return std::make_unique<backend::X11Window>(spec);
         }
-#   elif defined(X11_ENABLED)
+#   elif defined(USE_X11)
         return std::make_unique<backend::X11Window>(spec);
-#   elif defined(WAYLAND_ENABLED)
+#   elif defined(USE_WAYLAND)
         return std::make_unique<backend::WaylandWindow>(spec);
 #   endif
 #elif TARGET_WINDOWS

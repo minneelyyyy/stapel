@@ -11,10 +11,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+**/
 
 #include <Renderer/Renderer.h>
+
+#ifdef USE_VULKAN
 #include <Renderer/Vulkan/VulkanRenderer.h>
+#endif
 
 #include <Window/Window.h>
 
@@ -24,7 +27,7 @@ namespace stapel
     {
         switch (api) {
         case Renderer::Backend::Vulkan:
-#ifdef VULKAN_ENABLED
+#ifdef USE_VULKAN
             return std::make_unique<backend::vulkan::Renderer>(window, name, version);
 #else
             STAPEL_FATAL("Vulkan selected as backend but support is not built in to engine");

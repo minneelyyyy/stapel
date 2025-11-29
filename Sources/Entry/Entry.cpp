@@ -11,11 +11,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+**/
 
 #include <Stapel/Stapel.h>
 #include <Window/Window.h>
+
+#ifdef USE_VULKAN
 #include <Renderer/Vulkan/VulkanRenderer.h>
+#endif
 
 #include <memory>
 

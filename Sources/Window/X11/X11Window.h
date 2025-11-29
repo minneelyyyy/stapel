@@ -11,7 +11,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+**/
 
 #pragma once
 
@@ -30,7 +30,7 @@ namespace stapel::backend
         uint32_t Width() const override { return width_; }
         uint32_t Height() const override { return height_; }
 
-#ifdef VULKAN_ENABLED
+#ifdef USE_VULKAN
         VkSurfaceKHR CreateVulkanSurface(VkInstance instance) override;
 #endif
 

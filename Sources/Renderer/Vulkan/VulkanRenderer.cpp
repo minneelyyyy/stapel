@@ -11,7 +11,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+**/
 
 #include "VulkanRenderer.h"
 #include "Renderer/Vulkan/Device.h"
@@ -20,18 +20,23 @@
 #include <version.h>
 
 #include <vulkan/vulkan.h>
-#include <vulkan/vulkan_core.h>
+
+#pragma clang diagnostic push
+// VMA is particularly annoying with this flag enabled
+#pragma clang diagnostic ignored "-Wnullability-completeness"
 
 // only define VMA_IMPLEMENTATION here.
 #define VMA_IMPLEMENTATION
 #include "vk_mem_alloc.h"
 
+#pragma clang diagnostic pop
+
 #ifdef TARGET_LINUX
-#   ifdef X11_ENABLED
+#   ifdef USE_X11
 #       include <X11/Xlib.h>
 #   include <vulkan/vulkan_xlib.h>
 #   endif
-#   ifdef WAYLAND_ENABLED
+#   ifdef USE_WAYLAND
 #       include <vulkan/vulkan_wayland.h>
 #   endif
 #elifdef TARGET_WINDOWS
@@ -90,12 +95,12 @@ namespace stapel::backend::vulkan
         exts.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
 
 #ifdef TARGET_LINUX
-#   ifdef X11_ENABLED
+#   ifdef USE_X11
         if (window.GetBackendType() == Window::X11) {
             exts.push_back(VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
         }
 #   endif
-#   ifdef WAYLAND_ENABLED
+#   ifdef USE_WAYLAND
         if (window.GetBackendType() == Window::Wayland) {
             exts.push_back(VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME);
         }

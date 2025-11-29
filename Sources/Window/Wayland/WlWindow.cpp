@@ -11,17 +11,18 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+**/
 
 #include "WlWindow.h"
-#include "Stapel/Stapel.h"
-#include "xdg-shell-client-protocol.h"
-#include "xdg-decoration-unstable-v1-protocol.h"
+#include <Stapel/Stapel.h>
 
 #include <wayland-client-protocol.h>
 #include <wayland-client.h>
-#include <vulkan/vulkan.h>
-#include <vulkan/vulkan_wayland.h>
+
+#ifdef USE_VULKAN
+#   include <vulkan/vulkan.h>
+#   include <vulkan/vulkan_wayland.h>
+#endif
 
 #include <stdexcept>
 #include <cstring>
@@ -179,7 +180,7 @@ namespace stapel::backend
         wl_display_dispatch_pending(display_);
     }
 
-#ifdef VULKAN_ENABLED
+#ifdef USE_VULKAN
     VkSurfaceKHR WaylandWindow::CreateVulkanSurface(VkInstance instance)
     {
         VkWaylandSurfaceCreateInfoKHR info = {

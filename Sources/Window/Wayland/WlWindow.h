@@ -11,7 +11,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+**/
 
 #pragma once
 
@@ -37,7 +37,7 @@ namespace stapel::backend
         bool should_close = false;
         bool should_rebuild_swapchain = false;
         uint32_t width, height;
-    };
+    }; 
 
     class WaylandWindow : public Window
     {
@@ -51,7 +51,7 @@ namespace stapel::backend
         void Event() override;
         bool ShouldClose() override { return state_.should_close; };
 
-#ifdef VULKAN_ENABLED
+#ifdef USE_VULKAN
         VkSurfaceKHR CreateVulkanSurface(VkInstance instance) override;
 #endif
         Window::Backend GetBackendType() const override { return Window::Wayland; }
