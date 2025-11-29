@@ -37,7 +37,7 @@ extern "C" STAPEL_API int stapel_engine_entry(int argc, char** argv)
 
     while (!window->ShouldClose()) {
         window->Event();
-        renderer->DrawFrame();
+        renderer->drawFrame();
     }
 
     return 0;

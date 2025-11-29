@@ -37,9 +37,9 @@ class Renderer : public stapel::Renderer
     Renderer(std::shared_ptr<Window> window, const char* name, uint32_t version);
     ~Renderer();
 
-    stapel::Renderer::Backend GetBackend() const;
+    stapel::Renderer::Backend backend() const;
 
-    void DrawFrame();
+    void drawFrame();
 
   private:
     struct FrameData {
@@ -58,11 +58,11 @@ class Renderer : public stapel::Renderer
     const static unsigned int FRAME_OVERLAP = 2;
 
   private:
-    static Swapchain CreateSwapchain(Window& window, vulkan::Device& device, VkSurfaceKHR surface);
+    static Swapchain createSwapchain(Window& window, vulkan::Device& device, VkSurfaceKHR surface);
 
-    void DestroySwapchain(VkDevice device);
+    void destroySwapchain(VkDevice device);
 
-    FrameData& GetFrame()
+    FrameData& getFrame()
     {
         return frames_[frame_idx_ % frames_.size()];
     };

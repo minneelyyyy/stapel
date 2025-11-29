@@ -47,7 +47,7 @@ class Image
     Image& operator=(Image&& other) noexcept
     {
         if (this != &other) {
-            Clear();
+            clear();
 
             owns_image_ = other.owns_image_;
             owns_view_ = other.owns_view_;
@@ -70,7 +70,7 @@ class Image
         return *this;
     }
 
-    void Clear();
+    void clear();
     ~Image();
 
     VkImage GetImage() const
@@ -82,11 +82,11 @@ class Image
         return view_;
     }
 
-    static Image Wrap(VkDevice device, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, VkImage image,
+    static Image wrap(VkDevice device, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, VkImage image,
                       VkImageLayout layout, VkImageView view = nullptr);
 
-    void Transition(VkCommandBuffer cmd, VkImageLayout layout);
-    void Copy(VkCommandBuffer cmd, Image& dest);
+    void transition(VkCommandBuffer cmd, VkImageLayout layout);
+    void copy(VkCommandBuffer cmd, Image& dest);
 
   private:
     bool owns_image_ = true;

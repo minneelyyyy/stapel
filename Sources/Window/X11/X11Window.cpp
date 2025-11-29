@@ -21,18 +21,17 @@
 
 #include <stdexcept>
 
-namespace stapel::backend
+namespace stapel::backend::x11
 {
-X11Window::X11Window(const WindowSpecification& spec)
+Window::Window(const WindowSpecification& spec)
 {
     width_ = spec.width;
     height_ = spec.height;
 
     display_ = XOpenDisplay(NULL);
 
-    if (!display_) {
-        throw std::runtime_error("failed to open X display.");
-    }
+    if (!display_)
+        STAPEL_FATAL("failed to open X display.");
 
     window_ = XCreateSimpleWindow(display_, XDefaultRootWindow(display_), 0, 0, width_, height_, 0, 0x0, 0x0);
 
@@ -42,15 +41,15 @@ X11Window::X11Window(const WindowSpecification& spec)
     XMapWindow(display_, window_);
 }
 
-X11Window::~X11Window()
+Window::~Window()
 {
     XCloseDisplay(display_);
 }
 
 #ifdef USE_VULKAN
-VkSurfaceKHR X11Window::CreateVulkanSurface(VkInstance instance)
+VkSurfaceKHR Window::CreateVulkanSurface(VkInstance instance)
 {
-    VkXlibSurfaceCreateInfoKHR info{};
+    VkXlibSurfaceCreateInfoKHR info = {};
     info.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
     info.dpy = display_;
     info.window = window_;
@@ -62,4 +61,4 @@ VkSurfaceKHR X11Window::CreateVulkanSurface(VkInstance instance)
     return surface;
 }
 #endif
-} // namespace stapel::backend
+} // namespace stapel::backend::x11

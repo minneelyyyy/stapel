@@ -28,9 +28,9 @@ class Renderer
     virtual ~Renderer() = default;
 
     enum Backend { Vulkan };
-    virtual Backend GetBackend() const = 0;
+    virtual Backend backend() const = 0;
 
-    virtual void DrawFrame() = 0;
+    virtual void drawFrame() = 0;
 };
 
 std::unique_ptr<Renderer> CreateBackend(std::shared_ptr<Window> window, Renderer::Backend api, const char* name,

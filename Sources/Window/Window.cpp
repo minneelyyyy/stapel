@@ -35,12 +35,12 @@ std::shared_ptr<Window> GetWindow(const Window::WindowSpecification& spec)
 #ifdef TARGET_LINUX
 #if defined(USE_X11) && defined(USE_WAYLAND)
     if (getenv("WAYLAND_DISPLAY")) {
-        return std::make_unique<backend::WaylandWindow>(spec);
+        return std::make_unique<backend::wayland::Window>(spec);
     } else if (getenv("DISPLAY")) {
-        return std::make_unique<backend::X11Window>(spec);
+        return std::make_unique<backend::x11::Window>(spec);
     }
 #elif defined(USE_X11)
-    return std::make_unique<backend::X11Window>(spec);
+    return std::make_unique<backend::Window>(spec);
 #elif defined(USE_WAYLAND)
     return std::make_unique<backend::WaylandWindow>(spec);
 #endif

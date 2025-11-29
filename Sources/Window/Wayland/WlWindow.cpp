@@ -34,7 +34,7 @@ static void wm_base_ping(void* data, xdg_wm_base* wm_base, uint32_t serial)
 
 static void xdg_surface_configure(void* data, xdg_surface* surface, uint32_t serial)
 {
-    auto* state = static_cast<stapel::backend::WaylandState*>(data);
+    auto* state = static_cast<stapel::backend::wayland::WaylandState*>(data);
 
     xdg_surface_ack_configure(surface, serial);
 
@@ -43,7 +43,7 @@ static void xdg_surface_configure(void* data, xdg_surface* surface, uint32_t ser
 
 static void xdg_toplevel_configure(void* data, xdg_toplevel* toplevel, int32_t width, int32_t height, wl_array* array)
 {
-    auto* state = static_cast<stapel::backend::WaylandState*>(data);
+    auto* state = static_cast<stapel::backend::wayland::WaylandState*>(data);
 
     if (width > 0 && height > 0) {
         state->width = width;
@@ -55,7 +55,7 @@ static void xdg_toplevel_configure(void* data, xdg_toplevel* toplevel, int32_t w
 
 static void xdg_toplevel_close(void* data, xdg_toplevel* toplevel)
 {
-    auto* state = static_cast<stapel::backend::WaylandState*>(data);
+    auto* state = static_cast<stapel::backend::wayland::WaylandState*>(data);
     state->should_close = true;
 }
 
@@ -75,7 +75,7 @@ static const struct xdg_toplevel_listener xdg_toplevel_listener = {
 static void registry_handle_global(void* data, struct wl_registry* registry, uint32_t name, const char* interface,
                                    uint32_t version)
 {
-    auto* state = static_cast<stapel::backend::WaylandState*>(data);
+    auto* state = static_cast<stapel::backend::wayland::WaylandState*>(data);
 
     if (!::strcmp(interface, wl_compositor_interface.name)) {
         state->compositor = static_cast<wl_compositor*>(wl_registry_bind(registry, name, &wl_compositor_interface, 4));
@@ -97,9 +97,9 @@ static const struct wl_registry_listener listener{
     .global_remove = registry_handle_global_remove,
 };
 
-namespace stapel::backend
+namespace stapel::backend::wayland
 {
-WaylandWindow::WaylandWindow(const WindowSpecification& spec)
+Window::Window(const WindowSpecification& spec)
 {
     state_.width = spec.width;
     state_.height = spec.height;
@@ -149,7 +149,7 @@ WaylandWindow::WaylandWindow(const WindowSpecification& spec)
     wl_display_roundtrip(display_);
 }
 
-WaylandWindow::~WaylandWindow()
+Window::~Window()
 {
     if (state_.toplevel_decoration)
         zxdg_toplevel_decoration_v1_destroy(state_.toplevel_decoration);
@@ -169,7 +169,7 @@ WaylandWindow::~WaylandWindow()
         wl_display_disconnect(display_);
 }
 
-void WaylandWindow::Event()
+void Window::Event()
 {
     while (wl_display_prepare_read(display_) != 0)
         wl_display_dispatch_pending(display_);
@@ -181,7 +181,7 @@ void WaylandWindow::Event()
 }
 
 #ifdef USE_VULKAN
-VkSurfaceKHR WaylandWindow::CreateVulkanSurface(VkInstance instance)
+VkSurfaceKHR Window::CreateVulkanSurface(VkInstance instance)
 {
     VkWaylandSurfaceCreateInfoKHR info = {
         .sType = VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR,
@@ -196,4 +196,4 @@ VkSurfaceKHR WaylandWindow::CreateVulkanSurface(VkInstance instance)
     return vk_surface;
 }
 #endif
-} // namespace stapel::backend
+} // namespace stapel::backend::wayland

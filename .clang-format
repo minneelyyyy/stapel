@@ -6,6 +6,8 @@ BasedOnStyle: LLVM
 UseTab: Never
 IndentWidth: 4
 TabWidth: 4
+AccessModifierOffset: -4
+IndentAccessModifiers: false
 
 # --- Comment style ---
 AlignTrailingComments: false

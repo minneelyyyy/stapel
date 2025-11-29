@@ -17,8 +17,9 @@
 
 #include <Stapel/Stapel.h>
 
+#include <vulkan/vulkan.h>
+
 #include <cstring>
-#include <vulkan/vulkan_core.h>
 
 namespace stapel::backend::vulkan
 {
@@ -41,7 +42,7 @@ Device::Device(VkInstance instance, VkSurfaceKHR surface, const PhysicalDeviceIn
         .pQueuePriorities = &priority,
     };
 
-    VkDeviceCreateInfo createInfo = {
+    VkDeviceCreateInfo create_info = {
         .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
         .pNext = &info.cfg->feat,
         .queueCreateInfoCount = 1,
@@ -50,7 +51,7 @@ Device::Device(VkInstance instance, VkSurfaceKHR surface, const PhysicalDeviceIn
         .ppEnabledExtensionNames = info.cfg->exts.data(),
     };
 
-    if (vkCreateDevice(info.phys, &createInfo, nullptr, &device_) != VK_SUCCESS)
+    if (vkCreateDevice(info.phys, &create_info, nullptr, &device_) != VK_SUCCESS)
         STAPEL_FATAL("failed to create logical device!");
 
     vkGetDeviceQueue(device_, idx_, 0, &queue_);
@@ -68,7 +69,7 @@ DeviceBuilder::DeviceBuilder(VkInstance instance, VkSurfaceKHR surface)
 DeviceBuilder::~DeviceBuilder()
 {}
 
-bool checkForExtension(std::vector<VkExtensionProperties> exts, const char* ext)
+bool check_device_extensions(std::vector<VkExtensionProperties> exts, const char* ext)
 {
     for (auto x : exts) {
         if (!::strcmp(x.extensionName, ext))
@@ -78,7 +79,7 @@ bool checkForExtension(std::vector<VkExtensionProperties> exts, const char* ext)
     return false;
 }
 
-bool checkDeviceExtensions(VkPhysicalDevice dev, std::vector<const char*> exts)
+bool check_device_extensions(VkPhysicalDevice dev, std::vector<const char*> exts)
 {
     uint32_t size;
     vkEnumerateDeviceExtensionProperties(dev, nullptr, &size, nullptr);
@@ -87,14 +88,14 @@ bool checkDeviceExtensions(VkPhysicalDevice dev, std::vector<const char*> exts)
     vkEnumerateDeviceExtensionProperties(dev, nullptr, &size, dev_exts.data());
 
     for (auto ext : exts) {
-        if (!checkForExtension(dev_exts, ext))
+        if (!check_device_extensions(dev_exts, ext))
             return false;
     }
 
     return true;
 }
 
-bool DeviceBuilder::CheckDeviceFeatures(VkPhysicalDevice dev)
+bool DeviceBuilder::checkDeviceFeatures(VkPhysicalDevice dev)
 {
     VkPhysicalDeviceExtendedDynamicStateFeaturesEXT dynam = {
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT,
@@ -127,16 +128,16 @@ bool DeviceBuilder::CheckDeviceFeatures(VkPhysicalDevice dev)
     return true;
 }
 
-uint32_t findQueueFamilyIndex(VkPhysicalDevice device, VkSurfaceKHR surface, VkQueueFlagBits flags, bool present)
+uint32_t find_queue_family_index(VkPhysicalDevice device, VkSurfaceKHR surface, VkQueueFlagBits flags, bool present)
 {
-    uint32_t queueFamilyCount = 0;
-    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+    uint32_t queue_family_count = 0;
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, nullptr);
 
-    std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+    std::vector<VkQueueFamilyProperties> queue_families(queue_family_count);
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, queue_families.data());
 
-    for (uint32_t i = 0; i < queueFamilyCount; i++) {
-        if (queueFamilies[i].queueFlags & flags) {
+    for (uint32_t i = 0; i < queue_family_count; i++) {
+        if (queue_families[i].queueFlags & flags) {
             VkBool32 present;
             vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &present);
 
@@ -148,7 +149,7 @@ uint32_t findQueueFamilyIndex(VkPhysicalDevice device, VkSurfaceKHR surface, VkQ
     return INDEX_INVAL;
 }
 
-std::vector<PhysicalDeviceInfo> DeviceBuilder::Devices()
+std::vector<PhysicalDeviceInfo> DeviceBuilder::devices()
 {
     uint32_t size;
 
@@ -161,10 +162,10 @@ std::vector<PhysicalDeviceInfo> DeviceBuilder::Devices()
     infos.reserve(size);
 
     for (auto dev : devs) {
-        if (!checkDeviceExtensions(dev, cfg_->exts) || !CheckDeviceFeatures(dev))
+        if (!check_device_extensions(dev, cfg_->exts) || !checkDeviceFeatures(dev))
             continue;
 
-        uint32_t idx = findQueueFamilyIndex(dev, surface_, VK_QUEUE_GRAPHICS_BIT, true);
+        uint32_t idx = find_queue_family_index(dev, surface_, VK_QUEUE_GRAPHICS_BIT, true);
 
         PhysicalDeviceInfo info = {
             .phys = dev,

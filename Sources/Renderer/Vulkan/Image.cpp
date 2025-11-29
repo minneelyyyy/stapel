@@ -17,15 +17,15 @@
 
 namespace stapel::backend::vulkan
 {
-static VkImageView createImageView(VkDevice device, VkImage image, VkFormat format, VkImageViewType viewType,
-                                   VkImageAspectFlags flags)
+static VkImageView create_image_view(VkDevice device, VkImage image, VkFormat format, VkImageViewType view_type,
+                                     VkImageAspectFlags flags)
 {
     VkImageView view;
 
     VkImageViewCreateInfo img_view_info = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
         .image = image,
-        .viewType = viewType,
+        .viewType = view_type,
         .format = format,
         .subresourceRange =
             {
@@ -44,9 +44,10 @@ static VkImageView createImageView(VkDevice device, VkImage image, VkFormat form
 
 Image::Image(VkDevice device, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, VkImage image,
              VkImageLayout layout, VkImageView view)
-    : device_(device), extent_({width, height, depth}), format_(format), image_(image), current_layout_(layout)
+    : device_(device), extent_({width, height, depth}), format_(format), image_(image), current_layout_(layout),
+      allocator_(nullptr), allocation_(nullptr)
 {
-    view_ = view ? view : createImageView(device_, image_, format_, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT);
+    view_ = view ? view : create_image_view(device_, image_, format_, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
 Image::Image(VmaAllocator alloc, VkDevice device, uint32_t width, uint32_t height, uint32_t depth, VkFormat format)
@@ -75,10 +76,10 @@ Image::Image(VmaAllocator alloc, VkDevice device, uint32_t width, uint32_t heigh
 
     vmaCreateImage(allocator_, &img_info, &vma_alloc_info, &image_, &allocation_, nullptr);
 
-    view_ = createImageView(device_, image_, format_, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT);
+    view_ = create_image_view(device_, image_, format_, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
-Image Image::Wrap(VkDevice device, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, VkImage image,
+Image Image::wrap(VkDevice device, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, VkImage image,
                   VkImageLayout layout, VkImageView view)
 {
     Image img = Image(device, width, height, depth, format, image, layout, view);
@@ -90,9 +91,9 @@ Image Image::Wrap(VkDevice device, uint32_t width, uint32_t height, uint32_t dep
     return img;
 }
 
-void Image::Transition(VkCommandBuffer cmd, VkImageLayout layout)
+void Image::transition(VkCommandBuffer cmd, VkImageLayout layout)
 {
-    VkImageAspectFlags aspectMask =
+    VkImageAspectFlags aspect_mask =
         (layout == VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
 
     VkImageMemoryBarrier2 image_barrier = {
@@ -106,7 +107,7 @@ void Image::Transition(VkCommandBuffer cmd, VkImageLayout layout)
         .image = image_,
         .subresourceRange =
             VkImageSubresourceRange{
-                .aspectMask = aspectMask,
+                .aspectMask = aspect_mask,
                 .baseMipLevel = 0,
                 .levelCount = VK_REMAINING_MIP_LEVELS,
                 .baseArrayLayer = 0,
@@ -124,7 +125,7 @@ void Image::Transition(VkCommandBuffer cmd, VkImageLayout layout)
     current_layout_ = layout;
 }
 
-void Image::Copy(VkCommandBuffer cmd, Image& dest)
+void Image::copy(VkCommandBuffer cmd, Image& dest)
 {
     VkImageBlit2 blit_region = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_BLIT_2,
@@ -170,7 +171,7 @@ void Image::Copy(VkCommandBuffer cmd, Image& dest)
     vkCmdBlitImage2(cmd, &blit_info);
 }
 
-void Image::Clear()
+void Image::clear()
 {
     if (owns_view_) {
         vkDestroyImageView(device_, view_, nullptr);
@@ -189,6 +190,6 @@ void Image::Clear()
 
 Image::~Image()
 {
-    Clear();
+    clear();
 }
 } // namespace stapel::backend::vulkan

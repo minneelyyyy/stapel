@@ -53,30 +53,30 @@
 
 namespace stapel::backend::vulkan
 {
-const std::vector<const char*> validationLayers = {"VK_LAYER_KHRONOS_validation"};
+const std::vector<const char*> validation_layers = {"VK_LAYER_KHRONOS_validation"};
 
 #ifdef NDEBUG
-bool enableValidationLayers = false;
+bool enable_validation_layers = false;
 #else
-bool enableValidationLayers = true;
+bool enable_validation_layers = true;
 #endif
 
-std::vector<const char*> EnabledValidationLayers()
+std::vector<const char*> enabled_validation_layers()
 {
     std::vector<const char*> layers;
-    layers.reserve(validationLayers.size());
+    layers.reserve(validation_layers.size());
 
-    if (!enableValidationLayers)
+    if (!enable_validation_layers)
         return layers;
 
-    uint32_t layerCount;
-    vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+    uint32_t layer_count;
+    vkEnumerateInstanceLayerProperties(&layer_count, nullptr);
 
-    std::vector<VkLayerProperties> availableLayers(layerCount);
-    vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+    std::vector<VkLayerProperties> available_layers(layer_count);
+    vkEnumerateInstanceLayerProperties(&layer_count, available_layers.data());
 
-    for (const char* layer : validationLayers) {
-        for (const auto prop : availableLayers) {
+    for (const char* layer : validation_layers) {
+        for (const auto prop : available_layers) {
             if (!std::strcmp(layer, prop.layerName)) {
                 layers.push_back(layer);
                 break;
@@ -87,7 +87,7 @@ std::vector<const char*> EnabledValidationLayers()
     return layers;
 }
 
-VkInstance CreateInstance(const Window& window, const char* name, uint32_t version)
+VkInstance create_instance(const Window& window, const char* name, uint32_t version)
 {
     std::vector<const char*> exts;
     exts.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
@@ -130,9 +130,9 @@ VkInstance CreateInstance(const Window& window, const char* name, uint32_t versi
         .apiVersion = VK_API_VERSION_1_4,
     };
 
-    auto layers = EnabledValidationLayers();
+    auto layers = enabled_validation_layers();
 
-    if (enableValidationLayers && layers.size() == 0)
+    if (enable_validation_layers && layers.size() == 0)
         std::cout << "WARNING: validation layers specified (implicit from debug build), but none selected" << std::endl;
 
     VkInstanceCreateInfo info{
@@ -151,7 +151,7 @@ VkInstance CreateInstance(const Window& window, const char* name, uint32_t versi
     return instance;
 }
 
-VkSurfaceFormatKHR SelectBestSurfaceFormat(VkSurfaceKHR surface, VkPhysicalDevice device)
+VkSurfaceFormatKHR select_best_surface_format(VkSurfaceKHR surface, VkPhysicalDevice device)
 {
     uint32_t count = 0;
     vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &count, nullptr);
@@ -167,8 +167,8 @@ VkSurfaceFormatKHR SelectBestSurfaceFormat(VkSurfaceKHR surface, VkPhysicalDevic
     return formats[0];
 }
 
-std::optional<VkPresentModeKHR> SelectBestPresentMode(VkPhysicalDevice device, VkSurfaceKHR surface,
-                                                      std::span<VkPresentModeKHR> preferred_modes)
+std::optional<VkPresentModeKHR> select_best_present_mode(VkPhysicalDevice device, VkSurfaceKHR surface,
+                                                         std::span<VkPresentModeKHR> preferred_modes)
 {
     uint32_t count = 0;
     vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &count, nullptr);
@@ -191,7 +191,7 @@ std::optional<VkPresentModeKHR> SelectBestPresentMode(VkPhysicalDevice device, V
     return modes.front();
 }
 
-VkExtent2D SelectBestExtent(Window& window, VkSurfaceCapabilitiesKHR capabilities)
+VkExtent2D select_best_extent(Window& window, VkSurfaceCapabilitiesKHR capabilities)
 {
     if (capabilities.currentExtent.width != static_cast<uint32_t>(0xffffffff)) {
         return capabilities.currentExtent;
@@ -207,9 +207,9 @@ VkExtent2D SelectBestExtent(Window& window, VkSurfaceCapabilitiesKHR capabilitie
     return extent;
 }
 
-Renderer::Swapchain Renderer::CreateSwapchain(Window& window, vulkan::Device& device, VkSurfaceKHR surface)
+Renderer::Swapchain Renderer::createSwapchain(Window& window, vulkan::Device& device, VkSurfaceKHR surface)
 {
-    VkSurfaceFormatKHR surface_format = SelectBestSurfaceFormat(surface, device.GetPhys());
+    VkSurfaceFormatKHR surface_format = select_best_surface_format(surface, device.GetPhys());
 
     VkPresentModeKHR mode_pref[] = {
         VK_PRESENT_MODE_FIFO_KHR,
@@ -217,11 +217,11 @@ Renderer::Swapchain Renderer::CreateSwapchain(Window& window, vulkan::Device& de
         VK_PRESENT_MODE_IMMEDIATE_KHR,
     };
 
-    VkPresentModeKHR present_mode = SelectBestPresentMode(device.GetPhys(), surface, mode_pref).value();
+    VkPresentModeKHR present_mode = select_best_present_mode(device.GetPhys(), surface, mode_pref).value();
 
     VkSurfaceCapabilitiesKHR capabilities;
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device.GetPhys(), surface, &capabilities);
-    VkExtent2D extent = SelectBestExtent(window, capabilities);
+    VkExtent2D extent = select_best_extent(window, capabilities);
 
     uint32_t min_img_count = std::max<>(3u, capabilities.minImageCount);
 
@@ -260,15 +260,15 @@ Renderer::Swapchain Renderer::CreateSwapchain(Window& window, vulkan::Device& de
     uint32_t count;
     vkGetSwapchainImagesKHR(device.GetDevice(), chain, &count, nullptr);
 
-    std::vector<VkImage> vkImages(count);
-    vkGetSwapchainImagesKHR(device.GetDevice(), chain, &count, vkImages.data());
+    std::vector<VkImage> vk_images(count);
+    vkGetSwapchainImagesKHR(device.GetDevice(), chain, &count, vk_images.data());
 
     std::vector<Image> images;
     images.reserve(count);
 
-    for (VkImage image : vkImages) {
+    for (VkImage image : vk_images) {
         Image img =
-            Image::Wrap(device.GetDevice(), extent.width, extent.height, 1, format, image, VK_IMAGE_LAYOUT_UNDEFINED);
+            Image::wrap(device.GetDevice(), extent.width, extent.height, 1, format, image, VK_IMAGE_LAYOUT_UNDEFINED);
         images.push_back(std::move(img));
     }
 
@@ -278,7 +278,7 @@ Renderer::Swapchain Renderer::CreateSwapchain(Window& window, vulkan::Device& de
     };
 }
 
-VkCommandPool CreateCommandPool(VkDevice device, uint32_t queue_family_index)
+VkCommandPool create_command_pool(VkDevice device, uint32_t queue_family_index)
 {
     VkCommandPoolCreateInfo cmd_pool_info = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
@@ -293,7 +293,7 @@ VkCommandPool CreateCommandPool(VkDevice device, uint32_t queue_family_index)
     return pool;
 }
 
-VkCommandBuffer CreateCommandBuffer(VkDevice device, VkCommandPool pool)
+VkCommandBuffer create_command_buffer(VkDevice device, VkCommandPool pool)
 {
     VkCommandBufferAllocateInfo alloc_info = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -309,7 +309,7 @@ VkCommandBuffer CreateCommandBuffer(VkDevice device, VkCommandPool pool)
     return buffer;
 }
 
-VkSemaphore CreateBinarySemaphore(VkDevice device)
+VkSemaphore create_binary_semaphore(VkDevice device)
 {
     VkSemaphoreCreateInfo info = {
         .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
@@ -322,7 +322,7 @@ VkSemaphore CreateBinarySemaphore(VkDevice device)
     return semaphore;
 }
 
-VkFence CreateFence(VkDevice device, bool signaled)
+VkFence create_fence(VkDevice device, bool signaled)
 {
     VkFenceCreateInfo info = {
         .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
@@ -338,9 +338,9 @@ VkFence CreateFence(VkDevice device, bool signaled)
     return fence;
 }
 
-void Renderer::DrawFrame()
+void Renderer::drawFrame()
 {
-    FrameData& frame = GetFrame();
+    FrameData& frame = getFrame();
 
     vkWaitForFences(device_->GetDevice(), 1, &frame.render_fence, true, UINT64_MAX);
     vkResetFences(device_->GetDevice(), 1, &frame.render_fence);
@@ -363,7 +363,7 @@ void Renderer::DrawFrame()
 
     vkBeginCommandBuffer(cmd, &cmd_buf_begin_info);
 
-    img.Transition(cmd, VK_IMAGE_LAYOUT_GENERAL);
+    img.transition(cmd, VK_IMAGE_LAYOUT_GENERAL);
 
     VkClearColorValue clear;
     float flash = std::abs(std::sin(frame_idx_ / 120.f));
@@ -379,7 +379,7 @@ void Renderer::DrawFrame()
 
     vkCmdClearColorImage(cmd, swapchain_.images[image_idx].GetImage(), VK_IMAGE_LAYOUT_GENERAL, &clear, 1, &range);
 
-    img.Transition(cmd, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+    img.transition(cmd, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
     vkEndCommandBuffer(cmd);
 
@@ -422,14 +422,14 @@ void Renderer::DrawFrame()
         .pImageIndices = &image_idx,
     };
 
-    VkResult res = vkQueuePresentKHR(device_->GetQueue(), &present_info);
+    vkQueuePresentKHR(device_->GetQueue(), &present_info);
 
     frame_idx_++;
 }
 
 Renderer::Renderer(std::shared_ptr<Window> window, const char* name, uint32_t version) : window_(window)
 {
-    instance_ = CreateInstance(*window, name, version);
+    instance_ = create_instance(*window, name, version);
     surface_ = window->CreateVulkanSurface(instance_);
 
     auto devs = vulkan::DeviceBuilder(instance_, surface_)
@@ -440,14 +440,14 @@ Renderer::Renderer(std::shared_ptr<Window> window, const char* name, uint32_t ve
                     .dynamicRendering(true)
                     .descriptorIndexing(true)
                     .bufferDeviceAddress(true)
-                    .Devices();
+                    .devices();
 
     if (devs.size() == 0)
         STAPEL_FATAL("No valid device found!");
 
     device_ = std::make_unique<vulkan::Device>(instance_, surface_, devs[0]);
 
-    swapchain_ = CreateSwapchain(*window, *device_, surface_);
+    swapchain_ = createSwapchain(*window, *device_, surface_);
 
     uint32_t size;
     vkGetSwapchainImagesKHR(device_->GetDevice(), swapchain_.chain, &size, nullptr);
@@ -457,33 +457,33 @@ Renderer::Renderer(std::shared_ptr<Window> window, const char* name, uint32_t ve
     for (uint32_t i = 0; i < size; i++) {
         FrameData frame;
 
-        frame.pool = CreateCommandPool(device_->GetDevice(), device_->GetFamilyIndex());
-        frame.buffer = CreateCommandBuffer(device_->GetDevice(), frame.pool);
-        frame.render_fence = CreateFence(device_->GetDevice(), true);
-        frame.render_semaphore = CreateBinarySemaphore(device_->GetDevice());
-        frame.swapchain_semaphore = CreateBinarySemaphore(device_->GetDevice());
+        frame.pool = create_command_pool(device_->GetDevice(), device_->GetFamilyIndex());
+        frame.buffer = create_command_buffer(device_->GetDevice(), frame.pool);
+        frame.render_fence = create_fence(device_->GetDevice(), true);
+        frame.render_semaphore = create_binary_semaphore(device_->GetDevice());
+        frame.swapchain_semaphore = create_binary_semaphore(device_->GetDevice());
 
         frames_.push_back(frame);
     }
 
-    VmaAllocatorCreateInfo allocatorInfo = {
+    VmaAllocatorCreateInfo allocator_info = {
         .flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT,
         .physicalDevice = device_->GetPhys(),
         .device = device_->GetDevice(),
         .instance = instance_,
     };
 
-    vmaCreateAllocator(&allocatorInfo, &alloc_);
+    vmaCreateAllocator(&allocator_info, &alloc_);
 
     del_.Push([&]() { vmaDestroyAllocator(alloc_); });
 }
 
-stapel::Renderer::Backend Renderer::GetBackend() const
+stapel::Renderer::Backend Renderer::backend() const
 {
     return stapel::Renderer::Backend::Vulkan;
 }
 
-void Renderer::DestroySwapchain(VkDevice device)
+void Renderer::destroySwapchain(VkDevice device)
 {
     vkDestroySwapchainKHR(device, swapchain_.chain, nullptr);
     swapchain_.images.clear();
@@ -505,7 +505,7 @@ Renderer::~Renderer()
 
     del_.DeleteAll();
 
-    DestroySwapchain(device_->GetDevice());
+    destroySwapchain(device_->GetDevice());
 
     device_.reset();
 

@@ -162,8 +162,8 @@ class DeviceBuilder
     _VULKAN_FEATURE_XDEFS
 #undef X
 
-    bool CheckDeviceFeatures(VkPhysicalDevice dev);
-    std::vector<PhysicalDeviceInfo> Devices();
+    bool checkDeviceFeatures(VkPhysicalDevice dev);
+    std::vector<PhysicalDeviceInfo> devices();
 
   private:
     VkInstance instance_;
