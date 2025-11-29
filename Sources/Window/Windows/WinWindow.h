@@ -24,13 +24,13 @@
 #include <vulkan/vulkan.h>
 #endif
 
-namespace stapel::backend
+namespace stapel::backend::win32
 {
-class Win32Window : public Window
+class Window : public stapel::Window
 {
-  public:
-    Win32Window(const WindowSpecification& spec);
-    ~Win32Window() override;
+public:
+    Window(const WindowSpecification& spec);
+    ~Window() override;
 
     uint32_t Width() const override;
     uint32_t Height() const override;
@@ -41,10 +41,13 @@ class Win32Window : public Window
     VkSurfaceKHR CreateVulkanSurface(VkInstance instance) override;
 #endif
 
-    Window::Backend GetBackendType() const override { return Window::Windows; }
+    Window::Backend GetBackendType() const override
+    {
+        return Window::Windows;
+    }
 
-  private:
+private:
     HINSTANCE instance_;
     HWND hwnd_;
 };
-} // namespace stapel::backend
+} // namespace stapel::backend::win32

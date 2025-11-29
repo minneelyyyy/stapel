@@ -48,9 +48,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 #define CLASS_NAME "Stapel Window"
 
-namespace stapel::backend
+namespace stapel::backend::win32
 {
-Win32Window::Win32Window(const WindowSpecification& spec)
+Window::Window(const WindowSpecification& spec)
 {
     instance_ = GetModuleHandle(nullptr);
 
@@ -78,7 +78,7 @@ Win32Window::Win32Window(const WindowSpecification& spec)
     UpdateWindow(hwnd_);
 }
 
-Win32Window::~Win32Window()
+Window::~Window()
 {
     if (hwnd_)
         DestroyWindow(hwnd_);
@@ -86,18 +86,18 @@ Win32Window::~Win32Window()
     UnregisterClass(CLASS_NAME, instance_);
 }
 
-uint32_t Win32Window::Width() const
+uint32_t Window::Width() const
 {
     return static_cast<uint32_t>(width);
 }
 
-uint32_t Win32Window::Height() const
+uint32_t Window::Height() const
 {
     return static_cast<uint32_t>(height);
 }
 
 #ifdef USE_VULKAN
-VkSurfaceKHR Win32Window::CreateVulkanSurface(VkInstance instance)
+VkSurfaceKHR Window::CreateVulkanSurface(VkInstance instance)
 {
     VkWin32SurfaceCreateInfoKHR info{};
     info.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
@@ -111,4 +111,4 @@ VkSurfaceKHR Win32Window::CreateVulkanSurface(VkInstance instance)
     return surface;
 }
 #endif
-} // namespace stapel::backend
+} // namespace stapel::backend::win32

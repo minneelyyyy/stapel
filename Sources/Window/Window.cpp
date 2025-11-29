@@ -45,7 +45,7 @@ std::shared_ptr<Window> GetWindow(const Window::WindowSpecification& spec)
     return std::make_unique<backend::WaylandWindow>(spec);
 #endif
 #elif TARGET_WINDOWS
-    return std::make_unique<backend::Win32Window>(spec);
+    return std::make_unique<backend::win32::Window>(spec);
 #endif
     throw std::runtime_error("failed to create window. Are you running in a graphical environment?");
 }
