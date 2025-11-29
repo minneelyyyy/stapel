@@ -18,15 +18,16 @@
 #include "StapelAPI.h"
 
 #ifdef WIN32
-    #include <windows.h>
+#include <windows.h>
 #endif
 
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
 
 [[noreturn]]
-inline void _stapel_fatal_impl(const char* format, ...) {
+static void _stapel_fatal_impl(const char* format, ...)
+{
     char buffer[2048];
 
     va_list args;

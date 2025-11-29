@@ -50,7 +50,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 namespace stapel::backend::win32
 {
-Window::Window(const WindowSpecification& spec)
+Window::Window(const Specification& spec)
 {
     instance_ = GetModuleHandle(nullptr);
 

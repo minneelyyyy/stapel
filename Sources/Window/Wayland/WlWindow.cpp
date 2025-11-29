@@ -99,7 +99,7 @@ static const struct wl_registry_listener listener{
 
 namespace stapel::backend::wayland
 {
-Window::Window(const WindowSpecification& spec)
+Window::Window(const Specification& spec)
 {
     state_.width = spec.width;
     state_.height = spec.height;

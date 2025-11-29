@@ -23,7 +23,7 @@
 
 namespace stapel::backend::x11
 {
-Window::Window(const WindowSpecification& spec)
+Window::Window(const Specification& spec)
 {
     width_ = spec.width;
     height_ = spec.height;

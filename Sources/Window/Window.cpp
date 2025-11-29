@@ -30,23 +30,28 @@
 
 namespace stapel
 {
-std::shared_ptr<Window> GetWindow(const Window::WindowSpecification& spec)
+std::shared_ptr<Window> Window::GetWindow(const Window::Specification& spec)
 {
-#ifdef TARGET_LINUX
-#if defined(USE_X11) && defined(USE_WAYLAND)
+#ifdef USE_WAYLAND
     if (getenv("WAYLAND_DISPLAY")) {
-        return std::make_unique<backend::wayland::Window>(spec);
-    } else if (getenv("DISPLAY")) {
-        return std::make_unique<backend::x11::Window>(spec);
+        return std::make_shared<backend::wayland::Window>(spec);
     }
-#elif defined(USE_X11)
-    return std::make_unique<backend::Window>(spec);
-#elif defined(USE_WAYLAND)
-    return std::make_unique<backend::WaylandWindow>(spec);
 #endif
-#elif TARGET_WINDOWS
-    return std::make_unique<backend::win32::Window>(spec);
+
+#ifdef USE_X11
+    if (getenv("DISPLAY")) {
+        return std::make_shared<backend::x11::Window>(spec);
+    }
 #endif
-    throw std::runtime_error("failed to create window. Are you running in a graphical environment?");
+
+#ifdef USE_WIN32
+    return std::make_shared<backend::win32::Window>(spec);
+#endif
+
+#if !defined(USE_WAYLAND) && !defined(USE_X11) && !defined(USE_WIN32)
+    STAPEL_FATAL("This engine was compiled without support for any windowing system");
+#else
+    STAPEL_FATAL("No window could be created");
+#endif
 }
 } // namespace stapel

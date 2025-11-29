@@ -31,18 +31,17 @@
 
 #pragma clang diagnostic pop
 
-#ifdef TARGET_LINUX
 #ifdef USE_X11
 #include <X11/Xlib.h>
 #include <vulkan/vulkan_xlib.h>
 #endif
+
 #ifdef USE_WAYLAND
 #include <vulkan/vulkan_wayland.h>
 #endif
-#elifdef TARGET_WINDOWS
+
+#ifdef USE_WIN32
 #include <vulkan/vulkan_win32.h>
-#else
-#error No valid target specified
 #endif
 
 #include <algorithm>
@@ -92,23 +91,22 @@ VkInstance create_instance(const Window& window, const char* name, uint32_t vers
     std::vector<const char*> exts;
     exts.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
 
-#ifdef TARGET_LINUX
 #ifdef USE_X11
     if (window.GetBackendType() == Window::X11) {
         exts.push_back(VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
     }
 #endif
+
 #ifdef USE_WAYLAND
     if (window.GetBackendType() == Window::Wayland) {
         exts.push_back(VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME);
     }
 #endif
-#elifdef TARGET_WINDOWS
+
+#ifdef USE_WIN32
     if (window.GetBackendType() == Window::Windows) {
         exts.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
     }
-#else
-#error No valid target specified
 #endif
 
     if (exts.size() == 0)

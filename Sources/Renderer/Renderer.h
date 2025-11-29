@@ -24,15 +24,16 @@ namespace stapel
 {
 class Renderer
 {
-  public:
+public:
+    enum Backend { Vulkan };
+
+public:
+    static std::unique_ptr<Renderer> GetRenderer(std::shared_ptr<Window> window, Backend api, const char* name,
+                                                 uint32_t major, uint32_t minor, uint32_t patch);
     virtual ~Renderer() = default;
 
-    enum Backend { Vulkan };
     virtual Backend backend() const = 0;
 
     virtual void drawFrame() = 0;
 };
-
-std::unique_ptr<Renderer> CreateBackend(std::shared_ptr<Window> window, Renderer::Backend api, const char* name,
-                                        uint32_t version);
 } // namespace stapel

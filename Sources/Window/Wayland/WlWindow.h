@@ -42,7 +42,7 @@ struct WaylandState {
 class Window : public stapel::Window
 {
 public:
-    Window(const WindowSpecification& spec);
+    Window(const Specification& spec);
     ~Window() override;
 
     uint32_t Width() const override
