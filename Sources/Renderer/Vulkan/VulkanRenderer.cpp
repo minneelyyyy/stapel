@@ -520,6 +520,11 @@ DescriptorAllocator::DescriptorAllocator(VkDevice device, uint32_t max_sets,
     vkCreateDescriptorPool(device, &pool_info, nullptr, &pool_);
 }
 
+DescriptorAllocator::~DescriptorAllocator()
+{
+    vkDestroyDescriptorPool(device_, pool_, nullptr);
+}
+
 void DescriptorAllocator::clearDescriptors()
 {
     vkResetDescriptorPool(device_, pool_, 0);
@@ -616,6 +621,8 @@ std::optional<VkPipeline> create_compute_pipeline(Device& dev, VkPipelineLayout 
     vkCreateComputePipelines(dev.device(), VK_NULL_HANDLE, 1, &compute_pipeline_create_info,
                              nullptr, &pipeline);
 
+    vkDestroyShaderModule(dev.device(), mod.value(), nullptr);
+
     return pipeline;
 }
 
@@ -669,7 +676,7 @@ Renderer::Renderer(std::shared_ptr<Window> window, const char* name, uint32_t ve
     vmaCreateAllocator(&allocator_info, &alloc_);
 
     draw_img_ = Image(alloc_, device_->device(), swapchain_.extent.width, swapchain_.extent.width,
-                      swapchain_.extent.depth, swapchain_.format);
+                      swapchain_.extent.depth, VK_FORMAT_R16G16B16A16_SFLOAT);
 
     del_.push([&]() { vmaDestroyAllocator(alloc_); });
 

@@ -42,6 +42,7 @@ public:
 
 public:
     DescriptorAllocator(VkDevice device, uint32_t max_sets, std::span<PoolSizeRatio> pool_ratios);
+    ~DescriptorAllocator();
 
     void clearDescriptors();
     void destroyPool();
