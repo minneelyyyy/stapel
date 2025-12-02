@@ -13,35 +13,29 @@
 * limitations under the License.
 **/
 
-#pragma once
-
-#include <vulkan/vulkan.h>
-
-#include "Image.h"
-
-#include <vector>
+#include "CommandPool.h"
 
 namespace stapel::backend::vulkan
 {
-struct SwapchainSpec {
-    VkSurfaceFormatKHR format;
-    std::vector<VkPresentModeKHR> modes;
-    uint32_t width, height;
-};
-
-class Swapchain
+CommandPool::CommandPool(VkDevice dev, uint32_t idx)
+    : device_(dev)
 {
-public:
-    Swapchain(VkDevice dev, VkPhysicalDevice phys, uint32_t idx, VkSurfaceKHR surface,
-              const SwapchainSpec& spec);
-    ~Swapchain();
+    VkCommandPoolCreateInfo cmd_pool_info = {
+        .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+        .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+        .queueFamilyIndex = idx,
+    };
 
-public:
-    friend class Device;
+    vkCreateCommandPool(dev, &cmd_pool_info, nullptr, &pool_);
+}
 
-private:
-    VkDevice device_;
-    VkSwapchainKHR swapchain_;
-    std::vector<Image> images_;
-};
+CommandPool::~CommandPool()
+{
+    vkDestroyCommandPool(device_, pool_, nullptr);
+}
+
+CommandBuffer CommandPool::createBuffer()
+{
+    return CommandBuffer(device_, pool_);
+}
 } // namespace stapel::backend::vulkan

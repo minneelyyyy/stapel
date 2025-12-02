@@ -17,31 +17,30 @@
 
 #include <vulkan/vulkan.h>
 
-#include "Image.h"
-
-#include <vector>
+#include <functional>
 
 namespace stapel::backend::vulkan
 {
-struct SwapchainSpec {
-    VkSurfaceFormatKHR format;
-    std::vector<VkPresentModeKHR> modes;
-    uint32_t width, height;
-};
-
-class Swapchain
+class CommandBuffer
 {
 public:
-    Swapchain(VkDevice dev, VkPhysicalDevice phys, uint32_t idx, VkSurfaceKHR surface,
-              const SwapchainSpec& spec);
-    ~Swapchain();
+    CommandBuffer(VkDevice dev, VkCommandPool pool);
+    ~CommandBuffer();
+
+    CommandBuffer(const CommandBuffer&) = delete;
+    CommandBuffer& operator=(const CommandBuffer&) = delete;
+    CommandBuffer(CommandBuffer&&) = delete;
+    CommandBuffer& operator=(CommandBuffer&&) = delete;
+
+public:
+    void record(std::function<void(VkCommandBuffer)> f);
 
 public:
     friend class Device;
 
 private:
     VkDevice device_;
-    VkSwapchainKHR swapchain_;
-    std::vector<Image> images_;
+    VkCommandPool pool_;
+    VkCommandBuffer buf_;
 };
 } // namespace stapel::backend::vulkan

@@ -31,7 +31,6 @@
 
 namespace stapel::backend::vulkan
 {
-
 class DescriptorAllocator
 {
 public:
@@ -57,7 +56,7 @@ private:
 class Renderer : public stapel::Renderer
 {
 public:
-    Renderer(std::shared_ptr<Window> window, const char* name, uint32_t version);
+    Renderer(Window& window, const char* name, uint32_t version);
     ~Renderer();
 
     stapel::Renderer::Backend backend() const;
@@ -66,54 +65,12 @@ public:
     void drawFrame();
 
 private:
-    struct FrameData {
-        VkCommandPool pool;
-        VkCommandBuffer buffer;
-        VkSemaphore swapchain_semaphore, render_semaphore;
-        VkFence render_fence;
-        DeletionQueue del;
-    };
-
-    struct Swapchain {
-        VkSwapchainKHR chain;
-        std::vector<Image> images;
-        VkExtent3D extent;
-        VkFormat format;
-    };
-
-    const static unsigned int FRAME_OVERLAP = 2;
-
-private:
-    static Swapchain createSwapchain(Window& window, vulkan::Device& device, VkSurfaceKHR surface);
-
-    void destroySwapchain(VkDevice device);
-
-    FrameData& getFrame()
-    {
-        return frames_[frame_idx_ % frames_.size()];
-    };
-
-private:
-    std::shared_ptr<Window> window_;
+    Window& window_;
     VkInstance instance_;
     VkSurfaceKHR surface_;
-    std::unique_ptr<vulkan::Device> device_;
-
-    Swapchain swapchain_;
-    std::optional<Image> draw_img_;
-
-    std::vector<FrameData> frames_;
-    unsigned int frame_idx_ = 0;
-
-    DeletionQueue del_;
+    std::unique_ptr<Device> device_;
     VmaAllocator alloc_;
 
-    std::unique_ptr<DescriptorAllocator> descriptor_alloc_;
-
-    VkDescriptorSet draw_image_desc_;
-    VkDescriptorSetLayout draw_image_desc_layout_;
-
-    VkPipeline gradient_pipeline_;
-    VkPipelineLayout gradient_pipeline_layout_;
+    std::unique_ptr<Image> draw_img_;
 };
 } // namespace stapel::backend::vulkan

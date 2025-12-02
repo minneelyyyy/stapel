@@ -23,13 +23,15 @@
 
 namespace stapel
 {
-std::unique_ptr<Renderer> Renderer::getRenderer(std::shared_ptr<Window> window, Renderer::Backend api, const char* name,
+std::unique_ptr<Renderer> Renderer::getRenderer(std::shared_ptr<Window> window,
+                                                Renderer::Backend api, const char* name,
                                                 uint32_t major, uint32_t minor, uint32_t patch)
 {
     switch (api) {
     case Renderer::Backend::Vulkan:
 #ifdef USE_VULKAN
-        return std::make_unique<backend::vulkan::Renderer>(window, name, VK_MAKE_VERSION(major, minor, patch));
+        return std::make_unique<backend::vulkan::Renderer>(*window, name,
+                                                           VK_MAKE_VERSION(major, minor, patch));
 #else
         STAPEL_FATAL("Vulkan selected as backend but support is not built in to engine");
 #endif

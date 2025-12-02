@@ -17,85 +17,33 @@
 
 #include <vulkan/vulkan.h>
 
+#include "CommandBuffer.h"
+#include "CommandPool.h"
+#include "Image.h"
+#include "Pipeline.h"
+#include "Swapchain.h"
+
+#include <Window/Window.h>
+
 #include <memory>
 #include <vector>
-#include <vulkan/vulkan_core.h>
-
-#define _VULKAN_FEATURE_XDEFS                                                                                          \
-    X(vk13, robustImageAccess)                                                                                         \
-    X(vk13, inlineUniformBlock)                                                                                        \
-    X(vk13, descriptorBindingInlineUniformBlockUpdateAfterBind)                                                        \
-    X(vk13, pipelineCreationCacheControl)                                                                              \
-    X(vk13, privateData)                                                                                               \
-    X(vk13, shaderDemoteToHelperInvocation)                                                                            \
-    X(vk13, shaderTerminateInvocation)                                                                                 \
-    X(vk13, subgroupSizeControl)                                                                                       \
-    X(vk13, computeFullSubgroups)                                                                                      \
-    X(vk13, synchronization2)                                                                                          \
-    X(vk13, textureCompressionASTC_HDR)                                                                                \
-    X(vk13, shaderZeroInitializeWorkgroupMemory)                                                                       \
-    X(vk13, dynamicRendering)                                                                                          \
-    X(vk13, shaderIntegerDotProduct)                                                                                   \
-    X(vk13, maintenance4)                                                                                              \
-    X(vk12, samplerMirrorClampToEdge)                                                                                  \
-    X(vk12, drawIndirectCount)                                                                                         \
-    X(vk12, storageBuffer8BitAccess)                                                                                   \
-    X(vk12, uniformAndStorageBuffer8BitAccess)                                                                         \
-    X(vk12, storagePushConstant8)                                                                                      \
-    X(vk12, shaderBufferInt64Atomics)                                                                                  \
-    X(vk12, shaderSharedInt64Atomics)                                                                                  \
-    X(vk12, shaderFloat16)                                                                                             \
-    X(vk12, shaderInt8)                                                                                                \
-    X(vk12, descriptorIndexing)                                                                                        \
-    X(vk12, shaderInputAttachmentArrayDynamicIndexing)                                                                 \
-    X(vk12, shaderUniformTexelBufferArrayDynamicIndexing)                                                              \
-    X(vk12, shaderStorageTexelBufferArrayDynamicIndexing)                                                              \
-    X(vk12, shaderUniformBufferArrayNonUniformIndexing)                                                                \
-    X(vk12, shaderSampledImageArrayNonUniformIndexing)                                                                 \
-    X(vk12, shaderStorageBufferArrayNonUniformIndexing)                                                                \
-    X(vk12, shaderStorageImageArrayNonUniformIndexing)                                                                 \
-    X(vk12, shaderInputAttachmentArrayNonUniformIndexing)                                                              \
-    X(vk12, shaderUniformTexelBufferArrayNonUniformIndexing)                                                           \
-    X(vk12, shaderStorageTexelBufferArrayNonUniformIndexing)                                                           \
-    X(vk12, descriptorBindingUniformBufferUpdateAfterBind)                                                             \
-    X(vk12, descriptorBindingSampledImageUpdateAfterBind)                                                              \
-    X(vk12, descriptorBindingStorageImageUpdateAfterBind)                                                              \
-    X(vk12, descriptorBindingStorageBufferUpdateAfterBind)                                                             \
-    X(vk12, descriptorBindingUniformTexelBufferUpdateAfterBind)                                                        \
-    X(vk12, descriptorBindingStorageTexelBufferUpdateAfterBind)                                                        \
-    X(vk12, descriptorBindingUpdateUnusedWhilePending)                                                                 \
-    X(vk12, descriptorBindingPartiallyBound)                                                                           \
-    X(vk12, descriptorBindingVariableDescriptorCount)                                                                  \
-    X(vk12, runtimeDescriptorArray)                                                                                    \
-    X(vk12, samplerFilterMinmax)                                                                                       \
-    X(vk12, scalarBlockLayout)                                                                                         \
-    X(vk12, imagelessFramebuffer)                                                                                      \
-    X(vk12, uniformBufferStandardLayout)                                                                               \
-    X(vk12, shaderSubgroupExtendedTypes)                                                                               \
-    X(vk12, separateDepthStencilLayouts)                                                                               \
-    X(vk12, hostQueryReset)                                                                                            \
-    X(vk12, timelineSemaphore)                                                                                         \
-    X(vk12, bufferDeviceAddress)                                                                                       \
-    X(vk12, bufferDeviceAddressCaptureReplay)                                                                          \
-    X(vk12, bufferDeviceAddressMultiDevice)                                                                            \
-    X(vk12, vulkanMemoryModel)                                                                                         \
-    X(vk12, vulkanMemoryModelDeviceScope)                                                                              \
-    X(vk12, vulkanMemoryModelAvailabilityVisibilityChains)                                                             \
-    X(vk12, shaderOutputViewportIndex)                                                                                 \
-    X(vk12, shaderOutputLayer)                                                                                         \
-    X(vk12, subgroupBroadcastDynamicId)                                                                                \
-    X(dynam, extendedDynamicState)
 
 namespace stapel::backend::vulkan
 {
 struct DeviceConfig {
     std::vector<const char*> exts;
 
-    VkPhysicalDeviceFeatures2 feat = {.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2};
+    VkPhysicalDeviceFeatures2 feat = {
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
+    };
 
-    VkPhysicalDeviceVulkan12Features vk12 = {.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES};
+    VkPhysicalDeviceVulkan12Features vk12 = {
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
+    };
 
-    VkPhysicalDeviceVulkan13Features vk13 = {.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES};
+    VkPhysicalDeviceVulkan13Features vk13 = {
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
+    };
 
     VkPhysicalDeviceExtendedDynamicStateFeaturesEXT dynam = {
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT,
@@ -113,31 +61,89 @@ struct PhysicalDeviceInfo {
 class Device
 {
 public:
-    Device(VkInstance instance, VkSurfaceKHR surface, const PhysicalDeviceInfo& info);
+    Device(Window& window, VkInstance instance, VkSurfaceKHR surface,
+           const PhysicalDeviceInfo& info);
     ~Device();
 
-    VkPhysicalDevice GetPhys() const
-    {
-        return phys_;
-    }
-    VkDevice device() const
+    Device(const Device&) = delete;
+    Device& operator=(const Device&) = delete;
+    Device(Device&&) = delete;
+    Device& operator=(Device&&) = delete;
+
+public:
+    VkDevice device()
     {
         return device_;
     }
-    uint32_t GetFamilyIndex() const
+
+    VkPhysicalDevice physical()
     {
-        return idx_;
-    }
-    VkQueue GetQueue() const
-    {
-        return queue_;
+        return phys_;
     }
 
+public:
+    class Frame
+    {
+    private:
+        Device& device_;
+        VkSemaphore image_available_;
+        VkFence in_flight_;
+        CommandPool pool_;
+        CommandBuffer cmd_;
+        uint32_t image_idx_;
+
+    public:
+        Frame(Device& device);
+        ~Frame();
+
+        Frame(const Frame& other) = delete;
+        Frame operator=(const Frame& other) = delete;
+        Frame(Frame&& other) = delete;
+        Frame operator=(Frame&& other) = delete;
+
+    public:
+        CommandBuffer& getCmdBuffer();
+        Image& getSwapchainImage();
+
+    public:
+        friend class Device;
+    };
+
+public:
+    void waitIdle();
+    Frame& acquireNextFrame();
+    void submitCmdBuffer(const CommandBuffer& cmd, Frame& frame);
+    void present(Frame& frame);
+
+public:
+    friend class Swapchain;
+    friend class CommandPool;
+    friend class CommandBuffer;
+    friend class Pipeline;
+    friend class ComputePipeline;
+
 private:
+    uint32_t currentFrame();
+
+private:
+    const static unsigned int N_FRAMES_IN_FLIGHT = 2;
+
+private:
+    Window& window_;
     VkPhysicalDevice phys_;
-    VkDevice device_;
+    VkSurfaceKHR surface_;
     uint32_t idx_;
+
+    VkDevice device_;
     VkQueue queue_;
+
+    std::unique_ptr<Swapchain> swapchain_;
+
+    std::vector<std::unique_ptr<Frame>> frames_;
+    std::vector<VkFence> images_in_flight_;
+    std::vector<VkSemaphore> render_finished_semaphores_;
+
+    uint32_t frame_idx_ = 0;
 };
 
 class DeviceBuilder
@@ -152,14 +158,14 @@ public:
         return *this;
     }
 
-#define X(st, name)                                                                                                    \
-    inline DeviceBuilder& name(bool x)                                                                                 \
-    {                                                                                                                  \
-        this->cfg_->st.name = x;                                                                                       \
-        return *this;                                                                                                  \
+#define X(st, name)                                                                                \
+    inline DeviceBuilder& name(bool x)                                                             \
+    {                                                                                              \
+        this->cfg_->st.name = x;                                                                   \
+        return *this;                                                                              \
     }
 
-    _VULKAN_FEATURE_XDEFS
+#include "vk_features.xdefs"
 #undef X
 
     bool checkDeviceFeatures(VkPhysicalDevice dev);

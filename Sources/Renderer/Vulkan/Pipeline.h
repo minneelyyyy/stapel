@@ -17,31 +17,31 @@
 
 #include <vulkan/vulkan.h>
 
-#include "Image.h"
-
-#include <vector>
+#include <string>
 
 namespace stapel::backend::vulkan
 {
-struct SwapchainSpec {
-    VkSurfaceFormatKHR format;
-    std::vector<VkPresentModeKHR> modes;
-    uint32_t width, height;
-};
-
-class Swapchain
+class Pipeline
 {
 public:
-    Swapchain(VkDevice dev, VkPhysicalDevice phys, uint32_t idx, VkSurfaceKHR surface,
-              const SwapchainSpec& spec);
-    ~Swapchain();
+    Pipeline(VkDevice dev, VkPipeline pipeline);
+    ~Pipeline();
 
-public:
-    friend class Device;
+    Pipeline(const Pipeline& other) = delete;
+    Pipeline operator=(const Pipeline& other) = delete;
+    Pipeline(Pipeline&& other) = delete;
+    Pipeline operator=(Pipeline&& other) = delete;
 
-private:
+protected:
     VkDevice device_;
-    VkSwapchainKHR swapchain_;
-    std::vector<Image> images_;
+    VkPipeline pipeline_;
+};
+
+class ComputePipeline : public Pipeline
+{
+public:
+    ComputePipeline(VkDevice dev, VkPipelineLayout layout, const std::string& shader_path,
+                    const std::string& entry);
+    ~ComputePipeline();
 };
 } // namespace stapel::backend::vulkan

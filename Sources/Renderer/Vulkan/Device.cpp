@@ -14,6 +14,7 @@
 **/
 
 #include "Device.h"
+#include "util.h"
 
 #include <Stapel/Stapel.h>
 
@@ -30,8 +31,7 @@ DeviceConfig::DeviceConfig()
     vk12.pNext = &dynam;
 }
 
-Device::Device(VkInstance instance, VkSurfaceKHR surface, const PhysicalDeviceInfo& info)
-    : phys_(info.phys), idx_(info.family_idx)
+static VkDevice create_device(const PhysicalDeviceInfo& info)
 {
     float priority = 1.0f;
 
@@ -51,15 +51,175 @@ Device::Device(VkInstance instance, VkSurfaceKHR surface, const PhysicalDeviceIn
         .ppEnabledExtensionNames = info.cfg->exts.data(),
     };
 
-    if (vkCreateDevice(info.phys, &create_info, nullptr, &device_) != VK_SUCCESS)
+    VkDevice device;
+    if (vkCreateDevice(info.phys, &create_info, nullptr, &device) != VK_SUCCESS)
         STAPEL_FATAL("failed to create logical device!");
 
-    vkGetDeviceQueue(device_, idx_, 0, &queue_);
+    return device;
+}
+
+static VkQueue get_device_queue(VkDevice device, uint32_t idx)
+{
+    VkQueue queue;
+    vkGetDeviceQueue(device, idx, 0, &queue);
+
+    return queue;
+}
+
+Device::Frame::Frame(Device& device)
+    : device_(device),
+      image_available_(util::create_binary_semaphore(device_.device_)),
+      in_flight_(util::create_fence(device.device_, true)),
+      pool_(device.device_, device.idx_),
+      cmd_(device.device_, pool_.pool_)
+{}
+
+Device::Frame::~Frame()
+{
+    vkDestroyFence(device_.device_, in_flight_, nullptr);
+    vkDestroySemaphore(device_.device_, image_available_, nullptr);
+}
+
+CommandBuffer& Device::Frame::getCmdBuffer()
+{
+    return cmd_;
+}
+
+Image& Device::Frame::getSwapchainImage()
+{
+    return device_.swapchain_->images_[image_idx_];
+}
+
+Device::Device(Window& window, VkInstance instance, VkSurfaceKHR surface,
+               const PhysicalDeviceInfo& info)
+    : window_(window),
+      phys_(info.phys),
+      surface_(surface),
+      idx_(info.family_idx),
+      device_(create_device(info)),
+      queue_(get_device_queue(device_, idx_))
+{
+    swapchain_ =
+        std::make_unique<Swapchain>(device_, phys_, idx_, surface_,
+                                    SwapchainSpec{
+                                        .format =
+                                            {
+                                                .format = VK_FORMAT_B8G8R8_SRGB,
+                                                .colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR,
+                                            },
+                                        .modes =
+                                            {
+                                                VK_PRESENT_MODE_FIFO_KHR,
+                                                VK_PRESENT_MODE_MAILBOX_KHR,
+                                                VK_PRESENT_MODE_IMMEDIATE_KHR,
+                                            },
+                                        .width = 800,
+                                        .height = 600,
+                                    });
+
+    frames_.reserve(N_FRAMES_IN_FLIGHT);
+
+    for (int i = 0; i < N_FRAMES_IN_FLIGHT; i++) {
+        frames_.emplace_back(std::make_unique<Device::Frame>(*this));
+    }
+
+    images_in_flight_.resize(swapchain_->images_.size());
+
+    render_finished_semaphores_.resize(swapchain_->images_.size());
+
+    for (size_t i = 0; i < swapchain_->images_.size(); i++) {
+        render_finished_semaphores_[i] = util::create_binary_semaphore(device_);
+    }
 }
 
 Device::~Device()
 {
+    for (auto& frame : frames_) {
+        frame.reset();
+    }
+
+    for (VkSemaphore sem : render_finished_semaphores_) {
+        vkDestroySemaphore(device_, sem, nullptr);
+    }
+
+    swapchain_.reset();
     vkDestroyDevice(device_, nullptr);
+}
+
+uint32_t Device::currentFrame()
+{
+    return frame_idx_ % N_FRAMES_IN_FLIGHT;
+}
+
+void Device::waitIdle()
+{
+    vkDeviceWaitIdle(device_);
+}
+
+Device::Frame& Device::acquireNextFrame()
+{
+    Frame& frame = *frames_[currentFrame()];
+
+    vkWaitForFences(device_, 1, &frame.in_flight_, VK_TRUE, UINT64_MAX);
+
+    vkAcquireNextImageKHR(device_, swapchain_->swapchain_, UINT64_MAX, frame.image_available_,
+                          VK_NULL_HANDLE, &frame.image_idx_);
+
+    if (images_in_flight_[frame.image_idx_] != VK_NULL_HANDLE) {
+        vkWaitForFences(device_, 1, &images_in_flight_[frame.image_idx_], VK_TRUE, UINT64_MAX);
+    }
+
+    images_in_flight_[frame.image_idx_] = frame.in_flight_;
+
+    vkResetFences(device_, 1, &frame.in_flight_);
+
+    return frame;
+}
+
+void Device::submitCmdBuffer(const CommandBuffer& cmd, Frame& frame)
+{
+    VkPipelineStageFlags wait_stages[] = {
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+    };
+
+    VkSubmitInfo submit_info = {
+        .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+        .waitSemaphoreCount = 1,
+        .pWaitSemaphores = &frame.image_available_,
+        .pWaitDstStageMask = wait_stages,
+        .commandBufferCount = 1,
+        .pCommandBuffers = &cmd.buf_,
+        .signalSemaphoreCount = 1,
+        .pSignalSemaphores = &render_finished_semaphores_[frame.image_idx_],
+    };
+
+    if (VK_SUCCESS != vkQueueSubmit(queue_, 1, &submit_info, frame.in_flight_))
+        STAPEL_FATAL("failure to submit command queue");
+}
+
+void Device::present(Frame& frame)
+{
+    VkPresentInfoKHR present_info = {
+        .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+        .waitSemaphoreCount = 1,
+        .pWaitSemaphores = &render_finished_semaphores_[frame.image_idx_],
+        .swapchainCount = 1,
+        .pSwapchains = &swapchain_->swapchain_,
+        .pImageIndices = &frame.image_idx_,
+    };
+
+    switch (vkQueuePresentKHR(queue_, &present_info)) {
+    case VK_SUCCESS:
+        break;
+    case VK_SUBOPTIMAL_KHR:
+    case VK_ERROR_OUT_OF_DATE_KHR:
+        //TODO: recreate swapchain
+        break;
+    default:
+        STAPEL_FATAL("queue present error");
+    }
+
+    frame_idx_++;
 }
 
 DeviceBuilder::DeviceBuilder(VkInstance instance, VkSurfaceKHR surface)
@@ -118,17 +278,18 @@ bool DeviceBuilder::checkDeviceFeatures(VkPhysicalDevice dev)
 
     vkGetPhysicalDeviceFeatures2(dev, &dev_feat);
 
-#define X(st, name)                                                                                                    \
-    if (cfg_->st.name && !st.name)                                                                                     \
+#define X(st, name)                                                                                \
+    if (cfg_->st.name && !st.name)                                                                 \
         return false;
 
-    _VULKAN_FEATURE_XDEFS
+#include "vk_features.xdefs"
 #undef X
 
     return true;
 }
 
-uint32_t find_queue_family_index(VkPhysicalDevice device, VkSurfaceKHR surface, VkQueueFlagBits flags, bool present)
+uint32_t find_queue_family_index(VkPhysicalDevice device, VkSurfaceKHR surface,
+                                 VkQueueFlagBits flags, bool present)
 {
     uint32_t queue_family_count = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, nullptr);

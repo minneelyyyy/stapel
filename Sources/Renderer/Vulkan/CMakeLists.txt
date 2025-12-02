@@ -28,6 +28,16 @@ target_sources(
         DeletionQueue.h
         Device.cpp
         Device.h
+        Swapchain.cpp
+        Swapchain.h
+        CommandPool.cpp
+        CommandPool.h
+        CommandBuffer.cpp
+        CommandBuffer.h
+        Pipeline.cpp
+        Pipeline.h
         Image.cpp
         Image.h
+        util.cpp
+        util.h
 )

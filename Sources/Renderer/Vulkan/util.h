@@ -17,31 +17,11 @@
 
 #include <vulkan/vulkan.h>
 
-#include "Image.h"
-
-#include <vector>
-
-namespace stapel::backend::vulkan
+namespace stapel::backend::vulkan::util
 {
-struct SwapchainSpec {
-    VkSurfaceFormatKHR format;
-    std::vector<VkPresentModeKHR> modes;
-    uint32_t width, height;
-};
 
-class Swapchain
-{
-public:
-    Swapchain(VkDevice dev, VkPhysicalDevice phys, uint32_t idx, VkSurfaceKHR surface,
-              const SwapchainSpec& spec);
-    ~Swapchain();
+VkSemaphore create_binary_semaphore(VkDevice device);
 
-public:
-    friend class Device;
+VkFence create_fence(VkDevice device, bool signaled);
 
-private:
-    VkDevice device_;
-    VkSwapchainKHR swapchain_;
-    std::vector<Image> images_;
-};
-} // namespace stapel::backend::vulkan
+} // namespace stapel::backend::vulkan::util
