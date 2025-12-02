@@ -45,6 +45,14 @@ public:
         return false;
     };
 
+    virtual bool resized()
+    {
+        return false;
+    }
+
+    virtual void resizeHandled()
+    {}
+
 #ifdef USE_VULKAN
     virtual VkSurfaceKHR createVulkanSurface(VkInstance instance) = 0;
 #endif

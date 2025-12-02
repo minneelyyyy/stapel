@@ -111,6 +111,7 @@ public:
 
 public:
     void waitIdle();
+    void rebuildSwapchain();
     Frame& acquireNextFrame();
     void submitCmdBuffer(const CommandBuffer& cmd, Frame& frame);
     void present(Frame& frame);

@@ -90,6 +90,27 @@ Image& Device::Frame::getSwapchainImage()
     return device_.swapchain_->images_[image_idx_];
 }
 
+std::unique_ptr<Swapchain> create_swapchain(Window& win, VkDevice device, VkPhysicalDevice phys,
+                                            uint32_t idx, VkSurfaceKHR surface)
+{
+    return std::make_unique<Swapchain>(device, phys, idx, surface,
+                                       SwapchainSpec{
+                                           .format =
+                                               {
+                                                   .format = VK_FORMAT_B8G8R8A8_SRGB,
+                                                   .colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR,
+                                               },
+                                           .modes =
+                                               {
+                                                   VK_PRESENT_MODE_FIFO_KHR,
+                                                   VK_PRESENT_MODE_MAILBOX_KHR,
+                                                   VK_PRESENT_MODE_IMMEDIATE_KHR,
+                                               },
+                                           .width = win.width(),
+                                           .height = win.height(),
+                                       });
+}
+
 Device::Device(Window& window, VkInstance instance, VkSurfaceKHR surface,
                const PhysicalDeviceInfo& info)
     : window_(window),
@@ -99,23 +120,7 @@ Device::Device(Window& window, VkInstance instance, VkSurfaceKHR surface,
       device_(create_device(info)),
       queue_(get_device_queue(device_, idx_))
 {
-    swapchain_ =
-        std::make_unique<Swapchain>(device_, phys_, idx_, surface_,
-                                    SwapchainSpec{
-                                        .format =
-                                            {
-                                                .format = VK_FORMAT_B8G8R8_SRGB,
-                                                .colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR,
-                                            },
-                                        .modes =
-                                            {
-                                                VK_PRESENT_MODE_FIFO_KHR,
-                                                VK_PRESENT_MODE_MAILBOX_KHR,
-                                                VK_PRESENT_MODE_IMMEDIATE_KHR,
-                                            },
-                                        .width = 800,
-                                        .height = 600,
-                                    });
+    swapchain_ = create_swapchain(window, device_, phys_, idx_, surface_);
 
     frames_.reserve(N_FRAMES_IN_FLIGHT);
 
@@ -154,6 +159,13 @@ uint32_t Device::currentFrame()
 void Device::waitIdle()
 {
     vkDeviceWaitIdle(device_);
+}
+
+void Device::rebuildSwapchain()
+{
+    waitIdle();
+    swapchain_.reset();
+    swapchain_ = create_swapchain(window_, device_, phys_, idx_, surface_);
 }
 
 Device::Frame& Device::acquireNextFrame()
@@ -213,7 +225,7 @@ void Device::present(Frame& frame)
         break;
     case VK_SUBOPTIMAL_KHR:
     case VK_ERROR_OUT_OF_DATE_KHR:
-        //TODO: recreate swapchain
+        rebuildSwapchain();
         break;
     default:
         STAPEL_FATAL("queue present error");

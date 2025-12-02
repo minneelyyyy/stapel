@@ -167,6 +167,11 @@ void Renderer::drawBackground(VkCommandBuffer cmd, Image& img)
 
 void Renderer::drawFrame()
 {
+    if (window_.resized()) {
+        device_->rebuildSwapchain();
+        window_.resizeHandled();
+    }
+
     Device::Frame& frame = device_->acquireNextFrame();
     CommandBuffer& cmd = frame.getCmdBuffer();
     Image& img = frame.getSwapchainImage();

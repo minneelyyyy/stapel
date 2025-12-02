@@ -62,6 +62,16 @@ public:
         return state_.should_close;
     };
 
+    bool resized() override
+    {
+        return state_.should_rebuild_swapchain;
+    }
+
+    void resizeHandled() override
+    {
+        state_.should_rebuild_swapchain = false;
+    }
+
 #ifdef USE_VULKAN
     VkSurfaceKHR createVulkanSurface(VkInstance instance) override;
 #endif

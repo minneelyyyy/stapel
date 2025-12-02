@@ -41,7 +41,8 @@ static void xdg_surface_configure(void* data, xdg_surface* surface, uint32_t ser
     wl_surface_commit(state->surface);
 }
 
-static void xdg_toplevel_configure(void* data, xdg_toplevel* toplevel, int32_t width, int32_t height, wl_array* array)
+static void xdg_toplevel_configure(void* data, xdg_toplevel* toplevel, int32_t width,
+                                   int32_t height, wl_array* array)
 {
     auto* state = static_cast<stapel::backend::wayland::WaylandState*>(data);
 
@@ -72,15 +73,17 @@ static const struct xdg_toplevel_listener xdg_toplevel_listener = {
     .close = xdg_toplevel_close,
 };
 
-static void registry_handle_global(void* data, struct wl_registry* registry, uint32_t name, const char* interface,
-                                   uint32_t version)
+static void registry_handle_global(void* data, struct wl_registry* registry, uint32_t name,
+                                   const char* interface, uint32_t version)
 {
     auto* state = static_cast<stapel::backend::wayland::WaylandState*>(data);
 
     if (!::strcmp(interface, wl_compositor_interface.name)) {
-        state->compositor = static_cast<wl_compositor*>(wl_registry_bind(registry, name, &wl_compositor_interface, 4));
+        state->compositor = static_cast<wl_compositor*>(
+            wl_registry_bind(registry, name, &wl_compositor_interface, 4));
     } else if (!::strcmp(interface, xdg_wm_base_interface.name)) {
-        state->xdg_base = static_cast<xdg_wm_base*>(wl_registry_bind(registry, name, &xdg_wm_base_interface, 1));
+        state->xdg_base =
+            static_cast<xdg_wm_base*>(wl_registry_bind(registry, name, &xdg_wm_base_interface, 1));
 
         xdg_wm_base_add_listener(state->xdg_base, &wm_base_listener, state);
     } else if (!::strcmp(interface, zxdg_decoration_manager_v1_interface.name)) {
@@ -132,12 +135,11 @@ Window::Window(const Specification& spec)
         xdg_toplevel_add_listener(state_.xdg_toplevel, &xdg_toplevel_listener, &state_);
 
         xdg_toplevel_set_title(state_.xdg_toplevel, spec.title);
-        xdg_toplevel_set_min_size(state_.xdg_toplevel, state_.width, state_.height);
         xdg_toplevel_set_app_id(state_.xdg_toplevel, "stapel");
 
         if (state_.zxdg_decoration_manager) {
-            state_.toplevel_decoration =
-                zxdg_decoration_manager_v1_get_toplevel_decoration(state_.zxdg_decoration_manager, state_.xdg_toplevel);
+            state_.toplevel_decoration = zxdg_decoration_manager_v1_get_toplevel_decoration(
+                state_.zxdg_decoration_manager, state_.xdg_toplevel);
 
             zxdg_toplevel_decoration_v1_set_mode(state_.toplevel_decoration,
                                                  ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE);
