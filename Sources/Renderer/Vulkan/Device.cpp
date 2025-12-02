@@ -29,6 +29,7 @@ DeviceConfig::DeviceConfig()
     feat.pNext = &vk13;
     vk13.pNext = &vk12;
     vk12.pNext = &dynam;
+    dynam.pNext = &maint1;
 }
 
 static VkDevice create_device(const PhysicalDeviceInfo& info)
@@ -174,8 +175,17 @@ Device::Frame& Device::acquireNextFrame()
 
     vkWaitForFences(device_, 1, &frame.in_flight_, VK_TRUE, UINT64_MAX);
 
-    vkAcquireNextImageKHR(device_, swapchain_->swapchain_, UINT64_MAX, frame.image_available_,
-                          VK_NULL_HANDLE, &frame.image_idx_);
+    switch (vkAcquireNextImageKHR(device_, swapchain_->swapchain_, UINT64_MAX,
+                                  frame.image_available_, VK_NULL_HANDLE, &frame.image_idx_)) {
+    case VK_SUCCESS:
+        break;
+    case VK_SUBOPTIMAL_KHR:
+    case VK_ERROR_OUT_OF_DATE_KHR:
+        rebuildSwapchain();
+        break;
+    default:
+        STAPEL_FATAL("failure to acquire swapchain image");
+    };
 
     if (images_in_flight_[frame.image_idx_] != VK_NULL_HANDLE) {
         vkWaitForFences(device_, 1, &images_in_flight_[frame.image_idx_], VK_TRUE, UINT64_MAX);
@@ -211,8 +221,17 @@ void Device::submitCmdBuffer(const CommandBuffer& cmd, Frame& frame)
 
 void Device::present(Frame& frame)
 {
+    VkFence dummy = VK_NULL_HANDLE;
+
+    VkSwapchainPresentFenceInfoEXT ext = {
+        .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_PRESENT_FENCE_INFO_EXT,
+        .swapchainCount = 1,
+        .pFences = &dummy,
+    };
+
     VkPresentInfoKHR present_info = {
         .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+        .pNext = &ext,
         .waitSemaphoreCount = 1,
         .pWaitSemaphores = &render_finished_semaphores_[frame.image_idx_],
         .swapchainCount = 1,
@@ -269,8 +288,13 @@ bool check_device_extensions(VkPhysicalDevice dev, std::vector<const char*> exts
 
 bool DeviceBuilder::checkDeviceFeatures(VkPhysicalDevice dev)
 {
+    VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT maint1 = {
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SWAPCHAIN_MAINTENANCE_1_FEATURES_EXT,
+    };
+
     VkPhysicalDeviceExtendedDynamicStateFeaturesEXT dynam = {
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT,
+        .pNext = &maint1,
     };
 
     VkPhysicalDeviceVulkan12Features vk12 = {

@@ -180,13 +180,7 @@ void Renderer::drawFrame()
         draw_img_->transition(cmd, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_UNDEFINED);
 
         VkClearColorValue color = {
-            .float32 =
-                {
-                    1.0,
-                    0.0,
-                    0.0,
-                    1.0,
-                },
+            .float32 = {1.0, 0.0, 0.0, 1.0},
         };
 
         VkImageSubresourceRange range = {
@@ -332,11 +326,13 @@ static PhysicalDeviceInfo create_device_info(VkInstance instance, VkSurfaceKHR s
     auto devs = vulkan::DeviceBuilder(instance, surface)
                     .ext(VK_KHR_SWAPCHAIN_EXTENSION_NAME)
                     .ext(VK_KHR_SPIRV_1_4_EXTENSION_NAME)
+                    .ext(VK_KHR_MAINTENANCE1_EXTENSION_NAME)
                     .extendedDynamicState(true)
                     .synchronization2(true)
                     .dynamicRendering(true)
                     .descriptorIndexing(true)
                     .bufferDeviceAddress(true)
+                    .swapchainMaintenance1(true) // oops forgor
                     .devices();
 
     if (devs.size() == 0)

@@ -49,6 +49,10 @@ struct DeviceConfig {
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT,
     };
 
+    VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT maint1 = {
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SWAPCHAIN_MAINTENANCE_1_FEATURES_EXT,
+    };
+
     DeviceConfig();
 };
 

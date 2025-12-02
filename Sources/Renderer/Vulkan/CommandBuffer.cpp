@@ -15,6 +15,8 @@
 
 #include "CommandBuffer.h"
 
+#include <Stapel/Stapel.h>
+
 namespace stapel::backend::vulkan
 {
 CommandBuffer::CommandBuffer(VkDevice dev, VkCommandPool pool)
@@ -44,7 +46,10 @@ void CommandBuffer::record(std::function<void(VkCommandBuffer)> f)
 
     vkResetCommandBuffer(buf_, 0);
     vkBeginCommandBuffer(buf_, &cmd_buf_begin_info);
+
     f(buf_);
-    vkEndCommandBuffer(buf_);
+
+    if (VK_SUCCESS != vkEndCommandBuffer(buf_))
+        STAPEL_FATAL("command buffer failure");
 }
 } // namespace stapel::backend::vulkan
